@@ -4,7 +4,7 @@
 
 ## Что это
 
-SPA «calls_calendar»: **Vite 8 + React 19 + TypeScript 6 + Mantine 9** (+ `@mantine/dates`/`dayjs`). Нужен **Node 24+** (`engines` в `package.json`, столько же в CI). Бэкенда в репозитории нет — запросы к API возможны только через dev-прокси Vite, и только если задан `VITE_API_PROXY` в `.env` (шаблон: `.env.example`). Дефолтная ветка — **`master`** (не `main`).
+SPA «calls_calendar»: **Vite 8 + React 19 + TypeScript 6 + Mantine 9** (+ `@mantine/dates`/`dayjs`). Нужен **Node 24+** (`engines` в `package.json`, столько же в CI). Бэкенда в репозитории нет — запросы к API возможны только через dev-прокси Vite, и только если задан `VITE_API_PROXY` в `.env` (шаблон: `.env.example`). Дефолтная ветка — **`master`**.
 
 ## Команды
 
