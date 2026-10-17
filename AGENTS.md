@@ -49,3 +49,17 @@ SPA «calls_calendar»: **Vite 8 + React 19 + TypeScript 6 + Mantine 9** (+ `@ma
 - `npm run preview` — показать production-сборку из `dist/` (sourcemap `'hidden'`: карты в `dist` есть, но не связаны с кодом; vendor разбит на чанки `react` / `mantine` / `dayjs`).
 - При первом использовании компонентов `@mantine/dates` (DatePicker и т.п.) нужен импорт `@mantine/dates/styles.css` — сейчас он нигде не подключён.
 - `@mantine/*` — React-библиотека; Vue в проекте нет и появляться не должно.
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in this repo's GitHub Issues (via the `gh` CLI). See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default five-role vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: root `GLOSSARY.md` + `docs/adr/`. See `docs/agents/domain.md`.
