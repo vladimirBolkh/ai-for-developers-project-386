@@ -1,0 +1,7 @@
+dist
+node_modules
+package-lock.json
+
+# Файлы, сгенерированные платформой Hexlet — не форматировать (hexlet-check.yml: "DO NOT EDIT")
+.github/workflows/hexlet-check.yml
+.github/workflows/README.md
