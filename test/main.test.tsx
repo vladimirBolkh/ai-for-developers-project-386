@@ -6,11 +6,11 @@ describe('App (smoke)', () => {
     await import('@/main')
   })
 
-  it('поднимается и отвечает: рендерит содержимое приложения', async () => {
+  it('поднимается и отвечает: рендерит главную страницу', async () => {
     expect(
       await screen.findByRole('heading', { level: 1, name: /calls calendar/i }),
     ).toBeInTheDocument()
 
-    expect(screen.getByText(/mantine \+ react \+ vite/i)).toBeInTheDocument()
+    expect(screen.getByText(/бронируй время для встреч/i)).toBeInTheDocument()
   })
 })
