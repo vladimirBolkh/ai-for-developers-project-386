@@ -24,7 +24,16 @@ export default function HomePage() {
     <Container size="md" py="xl">
       <Stack gap="xl" align="center" ta="center">
         <Stack gap="sm">
-          <Title order={1}>Calls Calendar</Title>
+          <Title order={1}>
+            <Text
+              component="span"
+              variant="gradient"
+              gradient={{ from: 'indigo', to: 'violet', deg: 135 }}
+              inherit
+            >
+              Calls Calendar
+            </Text>
+          </Title>
           <Text c="dimmed" maw={520}>
             Бронируй время для встреч без переписки: владелец публикует свободное время, ты
             выбираешь слот и записываешься.
