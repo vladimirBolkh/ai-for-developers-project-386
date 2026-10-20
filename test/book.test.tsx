@@ -55,8 +55,7 @@ describe('Страница записи', () => {
 
     renderBookPage()
 
-    await screen.findByText('Консультация')
-    await userEvent.click(screen.getByRole('button', { name: /Консультация/ }))
+    await userEvent.click(await screen.findByRole('button', { name: /Консультация/ }))
 
     expect(await screen.findByText('Выбран: Консультация')).toBeInTheDocument()
   })
@@ -68,5 +67,65 @@ describe('Страница записи', () => {
 
     expect(await screen.findByText(/нет доступных типов/i)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /на главную/i })).toHaveAttribute('href', '/')
+  })
+})
+
+describe('Выбор слота', () => {
+  it('запрашивает доступность и показывает свободные слоты', async () => {
+    sdkMocks.eventTypesList.mockResolvedValue({ data: [consultation], error: undefined })
+    sdkMocks.availabilityGet.mockResolvedValue({
+      data: ['2026-10-21T09:00:00+03:00', '2026-10-21T09:15:00+03:00'],
+      error: undefined,
+    })
+
+    renderBookPage()
+    await userEvent.click(await screen.findByRole('button', { name: /Консультация/ }))
+
+    expect(await screen.findByText(/2026-10-21 · 09:00/)).toBeInTheDocument()
+    expect(screen.getByText(/2026-10-21 · 09:15/)).toBeInTheDocument()
+    expect(sdkMocks.availabilityGet).toHaveBeenCalledWith({
+      query: { eventTypeId: consultation.id },
+    })
+  })
+
+  it('пересчитывает слоты при смене типа', async () => {
+    sdkMocks.eventTypesList.mockResolvedValue({ data: [consultation, call], error: undefined })
+    sdkMocks.availabilityGet
+      .mockResolvedValueOnce({ data: ['2026-10-21T09:00:00+03:00'], error: undefined })
+      .mockResolvedValueOnce({ data: ['2026-10-22T10:00:00+03:00'], error: undefined })
+
+    renderBookPage()
+    await userEvent.click(await screen.findByRole('button', { name: /Консультация/ }))
+    await screen.findByText(/2026-10-21 · 09:00/)
+
+    await userEvent.click(screen.getByRole('button', { name: /Созвон/ }))
+
+    expect(await screen.findByText(/2026-10-22 · 10:00/)).toBeInTheDocument()
+    expect(screen.queryByText(/2026-10-21 · 09:00/)).not.toBeInTheDocument()
+    expect(sdkMocks.availabilityGet).toHaveBeenLastCalledWith({ query: { eventTypeId: call.id } })
+  })
+
+  it('фиксирует выбранный слот', async () => {
+    sdkMocks.eventTypesList.mockResolvedValue({ data: [consultation], error: undefined })
+    sdkMocks.availabilityGet.mockResolvedValue({
+      data: ['2026-10-21T09:00:00+03:00'],
+      error: undefined,
+    })
+
+    renderBookPage()
+    await userEvent.click(await screen.findByRole('button', { name: /Консультация/ }))
+    await userEvent.click(await screen.findByRole('button', { name: /2026-10-21 · 09:00/ }))
+
+    expect(await screen.findByText('Выбран слот: 2026-10-21 · 09:00')).toBeInTheDocument()
+  })
+
+  it('показывает сообщение при отсутствии свободных слотов', async () => {
+    sdkMocks.eventTypesList.mockResolvedValue({ data: [consultation], error: undefined })
+    sdkMocks.availabilityGet.mockResolvedValue({ data: [], error: undefined })
+
+    renderBookPage()
+    await userEvent.click(await screen.findByRole('button', { name: /Консультация/ }))
+
+    expect(await screen.findByText(/нет свободных слотов/i)).toBeInTheDocument()
   })
 })
