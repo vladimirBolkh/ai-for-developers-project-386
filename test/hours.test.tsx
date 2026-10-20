@@ -26,15 +26,14 @@ function renderHoursPage() {
 
 beforeEach(() => {
   resetSdkMocks()
+  sdkMocks.workingHoursOperationsGet.mockResolvedValue({
+    data: unconfigured,
+    error: undefined,
+  })
 })
 
 describe('Редактор рабочих часов', () => {
   it('показывает дефолт 09:00–18:00 в будние при ненастроенных часах', async () => {
-    sdkMocks.workingHoursOperationsGet.mockResolvedValue({
-      data: unconfigured,
-      error: undefined,
-    })
-
     renderHoursPage()
 
     expect(await screen.findByLabelText('Понедельник начало')).toHaveValue('09:00')
@@ -47,10 +46,6 @@ describe('Редактор рабочих часов', () => {
   })
 
   it('сохраняет часы через API', async () => {
-    sdkMocks.workingHoursOperationsGet.mockResolvedValue({
-      data: unconfigured,
-      error: undefined,
-    })
     sdkMocks.workingHoursOperationsSet.mockResolvedValue({ data: unconfigured, error: undefined })
 
     renderHoursPage()
@@ -75,11 +70,6 @@ describe('Редактор рабочих часов', () => {
   })
 
   it('блокирует сохранение при конце раньше начала', async () => {
-    sdkMocks.workingHoursOperationsGet.mockResolvedValue({
-      data: unconfigured,
-      error: undefined,
-    })
-
     renderHoursPage()
     await screen.findByLabelText('Понедельник начало')
     fireEvent.change(screen.getByLabelText('Понедельник конец'), {
@@ -89,6 +79,37 @@ describe('Редактор рабочих часов', () => {
 
     expect(await screen.findByText(/конец должен быть позже/i)).toBeInTheDocument()
     expect(sdkMocks.workingHoursOperationsSet).not.toHaveBeenCalled()
+  })
+
+  it('блокирует сохранение при частично заполненном дне', async () => {
+    renderHoursPage()
+    await screen.findByLabelText('Понедельник начало')
+    fireEvent.change(screen.getByLabelText('Понедельник конец'), { target: { value: '' } })
+    await userEvent.click(screen.getByRole('button', { name: 'Сохранить' }))
+
+    expect(await screen.findByText(/заполните начало и конец/i)).toBeInTheDocument()
+    expect(sdkMocks.workingHoursOperationsSet).not.toHaveBeenCalled()
+  })
+
+  it('блокирует сохранение, если время не кратно 15 минутам', async () => {
+    renderHoursPage()
+    await screen.findByLabelText('Понедельник начало')
+    fireEvent.change(screen.getByLabelText('Понедельник начало'), {
+      target: { value: '10:07' },
+    })
+    await userEvent.click(screen.getByRole('button', { name: 'Сохранить' }))
+
+    expect(await screen.findByText(/Понедельник: шаг/)).toBeInTheDocument()
+    expect(sdkMocks.workingHoursOperationsSet).not.toHaveBeenCalled()
+    expect(screen.getByLabelText('Понедельник начало')).toHaveValue('10:07')
+  })
+
+  it('показывает дефолт, если загрузка не удалась', async () => {
+    sdkMocks.workingHoursOperationsGet.mockRejectedValue(new Error('network'))
+
+    renderHoursPage()
+
+    expect(await screen.findByLabelText('Понедельник начало')).toHaveValue('09:00')
   })
 
   it('отображает сохранённую конфигурацию, если она есть', async () => {

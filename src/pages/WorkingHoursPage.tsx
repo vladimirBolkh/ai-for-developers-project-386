@@ -28,8 +28,14 @@ const defaultHours: WorkingHours = {
 }
 
 // Не настроено (все дни пустые) → показываем продуктовый дефолт.
+// Ограничение: клиент не отличает «никогда не настраивалось» от «сохранил всё выкл».
 function isUnconfigured(hours: WorkingHours) {
   return days.every(({ key }) => hours[key] === null)
+}
+
+// Шаг 15 минут: минуты времени должны быть кратны 15.
+function isQuarterHour(time: string) {
+  return Number(time.split(':')[1]) % 15 === 0
 }
 
 function validate(hours: WorkingHours): string | null {
@@ -39,11 +45,34 @@ function validate(hours: WorkingHours): string | null {
     if (!value.start || !value.end) {
       return `${label}: заполните начало и конец либо оставьте день пустым (выходной).`
     }
+    if (!isQuarterHour(value.start) || !isQuarterHour(value.end)) {
+      return `${label}: шаг — 15 минут.`
+    }
     if (value.start >= value.end) {
       return `${label}: конец должен быть позже начала.`
     }
   }
   return null
+}
+
+function TimeField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+}) {
+  return (
+    <input
+      type="time"
+      step={900}
+      aria-label={label}
+      value={value}
+      onChange={(event) => onChange(event.currentTarget.value)}
+    />
+  )
 }
 
 export default function WorkingHoursPage() {
@@ -54,11 +83,16 @@ export default function WorkingHoursPage() {
 
   useEffect(() => {
     let cancelled = false
-    workingHoursOperationsGet().then((result) => {
-      if (cancelled) return
-      const fetched = result.data
-      setHours(!fetched || isUnconfigured(fetched) ? { ...defaultHours } : fetched)
-    })
+    workingHoursOperationsGet()
+      .then((result) => {
+        if (cancelled) return
+        const fetched = result.data
+        setHours(!fetched || isUnconfigured(fetched) ? { ...defaultHours } : fetched)
+      })
+      .catch(() => {
+        // Ошибка загрузки → работаем с дефолтом, а не висим в вечном спиннере.
+        if (!cancelled) setHours({ ...defaultHours })
+      })
     return () => {
       cancelled = true
     }
@@ -116,20 +150,16 @@ export default function WorkingHoursPage() {
                     )}
                   </Group>
                   <Group gap="xs">
-                    <input
-                      type="time"
-                      step={900}
-                      aria-label={`${label} начало`}
+                    <TimeField
+                      label={`${label} начало`}
                       value={value?.start ?? ''}
-                      onChange={(event) => updateDay(key, 'start', event.currentTarget.value)}
+                      onChange={(next) => updateDay(key, 'start', next)}
                     />
                     <Text c="dimmed">—</Text>
-                    <input
-                      type="time"
-                      step={900}
-                      aria-label={`${label} конец`}
+                    <TimeField
+                      label={`${label} конец`}
                       value={value?.end ?? ''}
-                      onChange={(event) => updateDay(key, 'end', event.currentTarget.value)}
+                      onChange={(next) => updateDay(key, 'end', next)}
                     />
                   </Group>
                 </Paper>
