@@ -4,11 +4,12 @@
 
 ## Что это
 
-SPA «calls_calendar»: **Vite 8 + React 19 + TypeScript 6 + Mantine 9** (+ `@mantine/dates`/`dayjs`). Нужен **Node 24+** (`engines` в `package.json`, столько же в CI). Бэкенда в репозитории нет — запросы к API возможны только через dev-прокси Vite, и только если задан `VITE_API_PROXY` в `.env` (шаблон: `.env.example`). Дефолтная ветка — **`master`**.
+SPA «calls_calendar»: **Vite 8 + React 19 + TypeScript 6 + Mantine 9** (+ `@mantine/dates`/`dayjs`). Нужен **Node 24+** (`engines` в `package.json`, столько же в CI). Продакшен-бэкенда в репозитории нет, но есть in-memory dev-бэкенд (`npm run server`); клиент ходит в API через dev-прокси Vite, включаемую `VITE_API_PROXY` в `.env` (шаблон: `.env.example`). Дефолтная ветка — **`master`**.
 
 ## Команды
 
 - `npm run dev` — dev-сервер на `http://localhost:5173`
+- `npm run server` — in-memory dev-бэкенд (Fastify на `:8080`, все маршруты под `/api`); чтобы UI ходил в API, задайте `VITE_API_PROXY=http://localhost:8080` в `.env` и перезапустите `npm run dev`
 - `npm test` — vitest (один файл: `npx vitest run test/main.test.tsx`), `npm run test:watch`
 - `npm run lint` / `npm run format:check` / `npm run format`
 - `npm run build` — `tsc -b && vite build`, т.е. typecheck + сборка одной командой
@@ -23,6 +24,7 @@ SPA «calls_calendar»: **Vite 8 + React 19 + TypeScript 6 + Mantine 9** (+ `@ma
 - Vite 8 собирает на **rolldown**: объектная форма `build.rollupOptions.output.manualChunks` отклоняется типами, рабочая только функциональная (уже стоит в `vite.config.ts`).
 - Prettier-конфиг лежит в `package.json` (ключ `"prettier"`): одинарные кавычки, **без точек с запятой**, `printWidth: 100`, `trailingComma: 'all'`. Файла `.prettierrc` нет — не создавать. То же для commitlint (ключ `"commitlint"`).
 - PostCSS-плагины и тестовый `test`-блок прописаны в `vite.config.ts`; `/// <reference types="vitest/config" />` в первой строке обязателен для типов `test`-блока. Сам `vite.config.ts` типизируется отдельным проектом `tsconfig.node.json` (не `tsconfig.app.json`).
+- `server/` — in-memory Fastify-бэкенд, **не входит в `tsc -b`** (typecheck отдельно: `npx tsc -p server/tsconfig.json`). `server/generated/*` пересоздаются `npm run spec:server`; хендлеры и логика живут вне генерации — в `server/handlers.ts` и `server/store.ts` — и переживают регенерацию. Хендлеры ключуются по `operationId` и инжектируются в `registerRoutes`; сервер оборачивает маршруты в префикс `/api` (см. `server/index.ts`).
 
 ## Тесты
 

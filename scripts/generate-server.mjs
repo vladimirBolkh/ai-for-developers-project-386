@@ -71,12 +71,18 @@ function emitSchemas() {
   return lines.join('\n')
 }
 
+// Генерирует регистрацию маршрутов: пути и схемы — из OpenAPI, но хендлеры
+// инжектируются снаружи по operationId. Бизнес-логика живёт вне генерации
+// (server/handlers.ts + server/store.ts) и переживает регенерацию.
 function emitRoutes() {
   const lines = [
     header,
-    "import type { FastifyInstance } from 'fastify'",
+    "import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'",
     '',
-    'export function registerRoutes(app: FastifyInstance): void {',
+    'export type RouteHandler = (request: FastifyRequest, reply: FastifyReply) => unknown',
+    'export type RouteHandlers = Record<string, RouteHandler>',
+    '',
+    'export function registerRoutes(app: FastifyInstance, handlers: RouteHandlers): void {',
   ]
   for (const [routePath, pathItem] of Object.entries(openapi.paths ?? {})) {
     for (const method of HTTP_METHODS) {
@@ -87,12 +93,9 @@ function emitRoutes() {
       if (op.requestBody?.content?.['application/json']?.schema) {
         schema.body = rewriteRefs(op.requestBody.content['application/json'].schema)
       }
-      const label = `${method.toUpperCase()} ${routePath}`
       lines.push(
-        `  app.${method}('${fastifyPath}', { schema: ${JSON.stringify(schema)} }, async () => {`,
+        `  app.${method}('${fastifyPath}', { schema: ${JSON.stringify(schema)} }, handlers['${op.operationId}'])`,
       )
-      lines.push(`    throw new Error('${label} is not implemented')`)
-      lines.push('  })')
     }
   }
   lines.push('}', '')

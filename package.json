@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "vite",
+    "server": "tsx server/main.ts",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "spec:openapi": "tsp compile spec",
@@ -56,6 +57,7 @@
     "postcss-preset-mantine": "^1.18.0",
     "postcss-simple-vars": "^7.0.1",
     "prettier": "^3.9.10",
+    "tsx": "^4.23.15",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.71.2",
     "vite": "^8.3.0",
