@@ -64,6 +64,7 @@ describe('Поверхность владельца', () => {
     await userEvent.type(screen.getByLabelText(/Название/), 'Созвон')
     await userEvent.type(screen.getByLabelText(/Описание/), 'Короткий звонок')
     await userEvent.selectOptions(screen.getByLabelText(/Длительность/), '45')
+    await userEvent.click(screen.getByRole('radio', { name: 'оффлайн' }))
     await userEvent.click(screen.getByRole('button', { name: 'Создать' }))
 
     expect(await screen.findByText('Созвон')).toBeInTheDocument()
@@ -72,7 +73,7 @@ describe('Поверхность владельца', () => {
         name: 'Созвон',
         description: 'Короткий звонок',
         durationMinutes: 45,
-        format: 'online',
+        format: 'offline',
       },
     })
   })

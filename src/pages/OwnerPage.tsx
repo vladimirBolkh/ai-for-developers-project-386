@@ -24,10 +24,7 @@ const durationOptions = [15, 30, 45, 60, 75, 90, 105, 120].map((min) => ({
   label: `${min} мин`,
 }))
 
-const formatOptions = [
-  { value: 'online', label: 'онлайн' },
-  { value: 'offline', label: 'оффлайн' },
-]
+const formatOptions = Object.entries(formatLabel).map(([value, label]) => ({ value, label }))
 
 export default function OwnerPage() {
   const [types, setTypes] = useState<EventType[] | null>(null)
