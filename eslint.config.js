@@ -5,7 +5,7 @@ import prettierConfig from 'eslint-config-prettier/flat'
 
 export default tseslint.config(
   // Глобальные исключения
-  { ignores: ['dist/**', 'node_modules/**'] },
+  { ignores: ['dist/**', 'node_modules/**', 'src/api-client/**'] },
 
   // TypeScript: основные правила typescript-eslint
   ...tseslint.configs.recommended,
