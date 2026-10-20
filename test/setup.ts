@@ -1,4 +1,9 @@
 import '@testing-library/jest-dom/vitest'
+import { vi } from 'vitest'
+
+// Единый тестовый шов: модуль типизированного API-клиента подменяется на стабы
+// из sdk-mock.ts. Каждый тест настраивает поведение через `sdkMocks`.
+vi.mock('@/api', () => import('./sdk-mock').then((m) => m.sdkMocks))
 
 // Точка монтирования — как в index.html. Выполняется до всех хуков тестов,
 // чтобы `await import('@/main')` в beforeAll всегда находила <div id="app">.

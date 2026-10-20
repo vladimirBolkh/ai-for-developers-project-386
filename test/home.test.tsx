@@ -1,7 +1,12 @@
 import { screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import HomePage from '@/pages/HomePage'
+import { resetSdkMocks, sdkMocks } from './sdk-mock'
 import { render } from './test-utils'
+
+beforeEach(() => {
+  resetSdkMocks()
+})
 
 describe('Главная страница', () => {
   it('рассказывает о сервисе и ведёт на страницу записи', () => {
@@ -24,5 +29,35 @@ describe('Главная страница', () => {
     for (const link of ctaLinks) {
       expect(link).toHaveAttribute('href', '/book')
     }
+  })
+
+  it('показывает число типов событий из API (мок SDK, без сети)', async () => {
+    sdkMocks.eventTypesList.mockResolvedValue({
+      data: [
+        {
+          id: '1',
+          name: 'Консультация',
+          description: '30 минут',
+          durationMinutes: 30,
+          format: 'online',
+        },
+        {
+          id: '2',
+          name: 'Созвон',
+          description: '15 минут',
+          durationMinutes: 15,
+          format: 'offline',
+        },
+      ],
+      error: undefined,
+    })
+
+    render(
+      <MemoryRouter>
+        <HomePage />
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByText('Доступно типов встреч: 2')).toBeInTheDocument()
   })
 })
