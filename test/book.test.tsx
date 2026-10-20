@@ -79,6 +79,22 @@ describe('Страница записи', () => {
     expect(await screen.findByText(/нет доступных типов/i)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /на главную/i })).toHaveAttribute('href', '/')
   })
+
+  it('не падает, когда бэкенд вернул не-массив (недоступен/вне контракта)', async () => {
+    // SPA-fallback Vite при отсутствии прокси отдаёт HTML строку вместо массива.
+    // Раньше это роняло рендер (`types.find is not a function` → белый экран).
+    sdkMocks.eventTypesList.mockResolvedValue({
+      data: '<!doctype html><html><body></body></html>' as unknown as EventType[],
+      error: undefined,
+    })
+
+    renderBookPage()
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Запись на встречу' }),
+    ).toBeInTheDocument()
+    expect(screen.getByText(/нет доступных типов/i)).toBeInTheDocument()
+  })
 })
 
 describe('Выбор слота', () => {

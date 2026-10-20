@@ -1,5 +1,6 @@
 import { eventTypesCreate, eventTypesList, eventTypesRemove, eventTypesUpdate } from '@/api'
 import type { EventType, EventTypeCreate, MeetingFormat } from '@/api'
+import { asArray } from '@/lib/data'
 import { formatLabel } from '@/lib/format'
 import {
   Button,
@@ -41,7 +42,7 @@ export default function OwnerPage() {
   useEffect(() => {
     let cancelled = false
     eventTypesList().then((result) => {
-      if (!cancelled) setTypes(result.data ?? [])
+      if (!cancelled) setTypes(asArray<EventType>(result.data))
     })
     return () => {
       cancelled = true
@@ -49,7 +50,7 @@ export default function OwnerPage() {
   }, [])
 
   function refresh() {
-    eventTypesList().then((result) => setTypes(result.data ?? []))
+    eventTypesList().then((result) => setTypes(asArray<EventType>(result.data)))
   }
 
   function openCreate() {

@@ -1,5 +1,6 @@
 import { bookingsList } from '@/api'
 import type { Meeting } from '@/api'
+import { asArray } from '@/lib/data'
 import { formatSlot } from '@/lib/format'
 import { Button, Container, Loader, Paper, Stack, Text, Title } from '@mantine/core'
 import { useEffect, useState } from 'react'
@@ -11,9 +12,9 @@ export default function MeetingsPage() {
   useEffect(() => {
     let cancelled = false
     bookingsList().then((result) => {
-      // Как и в остальных списках: ошибка и пустой ответ дают пустое состояние,
-      // а не вечный спиннер.
-      if (!cancelled) setMeetings(result.data ?? [])
+      // Как и в остальных списках: ошибка, пустой ответ и не-массив (недоступный
+      // бэкенд) дают пустое состояние, а не вечный спиннер или белый экран.
+      if (!cancelled) setMeetings(asArray<Meeting>(result.data))
     })
     return () => {
       cancelled = true

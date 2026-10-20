@@ -1,5 +1,6 @@
 import { availabilityGet, bookingsCreate, eventTypesList } from '@/api'
 import type { EventType, Meeting } from '@/api'
+import { asArray } from '@/lib/data'
 import { formatLabel, formatSlot } from '@/lib/format'
 import {
   Badge,
@@ -34,8 +35,9 @@ export default function BookPage() {
   useEffect(() => {
     let cancelled = false
     eventTypesList().then((result) => {
-      // Ошибка и пустой список одинаково дают пустое состояние, а не вечный спиннер.
-      if (!cancelled) setTypes(result.data ?? [])
+      // Ошибка, пустой список и не-массив (недоступный бэкенд) дают пустое
+      // состояние, а не вечный спиннер или белый экран.
+      if (!cancelled) setTypes(asArray<EventType>(result.data))
     })
     return () => {
       cancelled = true
@@ -59,7 +61,7 @@ export default function BookPage() {
     setGuestEmail('')
     setNameError(null)
     availabilityGet({ query: { eventTypeId: selectedId } }).then((result) => {
-      if (!cancelled) setSlots(result.data ?? [])
+      if (!cancelled) setSlots(asArray<string>(result.data))
     })
     return () => {
       cancelled = true

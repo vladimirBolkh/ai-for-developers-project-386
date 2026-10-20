@@ -28,7 +28,9 @@ export default function HomePage() {
     let cancelled = false
     eventTypesList()
       .then((result) => {
-        if (!cancelled && result.data) setEventTypesCount(result.data.length)
+        // Считаем только если это реально массив: недоступный бэкенд отдаёт
+        // не-массив (например, HTML), и `.length` дал бы фиктивное число.
+        if (!cancelled && Array.isArray(result.data)) setEventTypesCount(result.data.length)
       })
       .catch(() => {})
     return () => {
