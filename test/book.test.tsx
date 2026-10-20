@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import type { EventType } from '@/api'
+import type { EventType, Meeting } from '@/api'
 import { MemoryRouter } from 'react-router-dom'
 import BookPage from '@/pages/BookPage'
 import { resetSdkMocks, sdkMocks } from './sdk-mock'
@@ -20,6 +20,17 @@ const call: EventType = {
   description: 'Короткий звонок',
   durationMinutes: 15,
   format: 'offline',
+}
+
+const meeting: Meeting = {
+  id: 'm1',
+  eventTypeId: '1',
+  eventTypeName: 'Консультация',
+  eventTypeDescription: 'Разбор вопроса',
+  eventTypeDurationMinutes: 30,
+  eventTypeFormat: 'online',
+  startDateTime: '2026-10-21T09:00:00+03:00',
+  guestName: 'Анна',
 }
 
 function renderBookPage() {
@@ -116,7 +127,8 @@ describe('Выбор слота', () => {
     await userEvent.click(await screen.findByRole('button', { name: /Консультация/ }))
     await userEvent.click(await screen.findByRole('button', { name: /2026-10-21 · 09:00/ }))
 
-    expect(await screen.findByText('Выбран слот: 2026-10-21 · 09:00')).toBeInTheDocument()
+    // После выбора слота появляется форма ввода данных гостя.
+    expect(await screen.findByText('Ваши данные')).toBeInTheDocument()
   })
 
   it('показывает сообщение при отсутствии свободных слотов', async () => {
@@ -127,5 +139,76 @@ describe('Выбор слота', () => {
     await userEvent.click(await screen.findByRole('button', { name: /Консультация/ }))
 
     expect(await screen.findByText(/нет свободных слотов/i)).toBeInTheDocument()
+  })
+})
+
+describe('Подтверждение записи', () => {
+  async function pickSlotAndOpenForm() {
+    sdkMocks.eventTypesList.mockResolvedValue({ data: [consultation], error: undefined })
+    sdkMocks.availabilityGet.mockResolvedValue({
+      data: ['2026-10-21T09:00:00+03:00'],
+      error: undefined,
+    })
+    renderBookPage()
+    await userEvent.click(await screen.findByRole('button', { name: /Консультация/ }))
+    await userEvent.click(await screen.findByRole('button', { name: /2026-10-21 · 09:00/ }))
+    await screen.findByText('Ваши данные')
+  }
+
+  it('требует имя перед отправкой', async () => {
+    await pickSlotAndOpenForm()
+
+    await userEvent.click(screen.getByRole('button', { name: /Подтвердить запись/ }))
+
+    expect(await screen.findByText('Введите имя')).toBeInTheDocument()
+    expect(sdkMocks.bookingsCreate).not.toHaveBeenCalled()
+  })
+
+  it('создаёт запись и показывает подтверждение Встречи', async () => {
+    sdkMocks.bookingsCreate.mockResolvedValue({ data: meeting, error: undefined })
+
+    await pickSlotAndOpenForm()
+    await userEvent.type(screen.getByLabelText(/Имя/), 'Анна')
+    await userEvent.click(screen.getByRole('button', { name: /Подтвердить запись/ }))
+
+    expect(await screen.findByText('Вы записаны')).toBeInTheDocument()
+    expect(screen.getByText('Гость: Анна')).toBeInTheDocument()
+    expect(sdkMocks.bookingsCreate).toHaveBeenCalledWith({
+      body: {
+        eventTypeId: '1',
+        startDateTime: '2026-10-21T09:00:00+03:00',
+        guestName: 'Анна',
+      },
+    })
+  })
+
+  it('при занятом слоте (409) возвращает к выбору слота', async () => {
+    sdkMocks.bookingsCreate.mockResolvedValue({
+      data: undefined,
+      error: { message: 'conflict' },
+      response: { status: 409 },
+    })
+
+    await pickSlotAndOpenForm()
+    await userEvent.type(screen.getByLabelText(/Имя/), 'Анна')
+    await userEvent.click(screen.getByRole('button', { name: /Подтвердить запись/ }))
+
+    expect(await screen.findByText(/уже занят/i)).toBeInTheDocument()
+    expect(screen.queryByText('Ваши данные')).not.toBeInTheDocument()
+  })
+
+  it('при ошибке валидации (400) показывает сообщение об ошибке', async () => {
+    sdkMocks.bookingsCreate.mockResolvedValue({
+      data: undefined,
+      error: { message: 'bad request' },
+      response: { status: 400 },
+    })
+
+    await pickSlotAndOpenForm()
+    await userEvent.type(screen.getByLabelText(/Имя/), 'Анна')
+    await userEvent.click(screen.getByRole('button', { name: /Подтвердить запись/ }))
+
+    expect(await screen.findByText(/Не удалось создать запись/i)).toBeInTheDocument()
+    expect(screen.getByText('Ваши данные')).toBeInTheDocument()
   })
 })
