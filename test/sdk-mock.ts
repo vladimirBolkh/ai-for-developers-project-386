@@ -42,7 +42,7 @@ export const sdkMocks = {
     .fn<SdkFn<WorkingHours>>()
     .mockResolvedValue({ data: undefined, error: undefined }),
   workingHoursOperationsSet: vi
-    .fn<SdkFn<WorkingHours>>()
+    .fn<SdkFn<WorkingHours, { body: WorkingHours }>>()
     .mockResolvedValue({ data: undefined, error: undefined }),
 }
 

@@ -120,6 +120,9 @@ export default function OwnerPage() {
           <Button component={Link} to="/meetings" variant="light">
             Предстоящие встречи
           </Button>
+          <Button component={Link} to="/hours" variant="light">
+            Рабочие часы
+          </Button>
         </Group>
 
         {types === null ? (

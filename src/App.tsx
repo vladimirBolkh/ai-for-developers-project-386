@@ -5,6 +5,7 @@ import BookPage from '@/pages/BookPage'
 import HomePage from '@/pages/HomePage'
 import MeetingsPage from '@/pages/MeetingsPage'
 import OwnerPage from '@/pages/OwnerPage'
+import WorkingHoursPage from '@/pages/WorkingHoursPage'
 
 export default function App() {
   useEffect(() => {
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/book" element={<BookPage />} />
           <Route path="/owner" element={<OwnerPage />} />
           <Route path="/meetings" element={<MeetingsPage />} />
+          <Route path="/hours" element={<WorkingHoursPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
