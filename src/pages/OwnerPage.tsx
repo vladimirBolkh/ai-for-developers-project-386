@@ -117,6 +117,9 @@ export default function OwnerPage() {
 
         <Group>
           <Button onClick={openCreate}>Создать тип</Button>
+          <Button component={Link} to="/meetings" variant="light">
+            Предстоящие встречи
+          </Button>
         </Group>
 
         {types === null ? (
