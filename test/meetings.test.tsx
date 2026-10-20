@@ -35,6 +35,7 @@ describe('Список предстоящих Встреч', () => {
     renderMeetingsPage()
 
     expect(await screen.findByText('Пока нет встреч.')).toBeInTheDocument()
+    expect(sdkMocks.bookingsList).toHaveBeenCalled()
   })
 
   it('показывает имя гостя, тип события и время', async () => {
@@ -43,6 +44,7 @@ describe('Список предстоящих Встреч', () => {
     renderMeetingsPage()
 
     expect(await screen.findByText('Анна')).toBeInTheDocument()
+    expect(sdkMocks.bookingsList).toHaveBeenCalled()
     expect(screen.getByText('Консультация')).toBeInTheDocument()
     expect(screen.getByText('2026-10-21 · 09:00')).toBeInTheDocument()
   })

@@ -11,6 +11,8 @@ export default function MeetingsPage() {
   useEffect(() => {
     let cancelled = false
     bookingsList().then((result) => {
+      // Как и в остальных списках: ошибка и пустой ответ дают пустое состояние,
+      // а не вечный спиннер.
       if (!cancelled) setMeetings(result.data ?? [])
     })
     return () => {
