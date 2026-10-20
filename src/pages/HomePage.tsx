@@ -64,6 +64,11 @@ export default function HomePage() {
               Записаться на встречу
             </Button>
           </Group>
+          <Group justify="center" mt="xs">
+            <Button component={Link} to="/owner" variant="subtle" size="sm">
+              Мои типы встреч
+            </Button>
+          </Group>
         </Stack>
 
         <Stack gap="md" w="100%">

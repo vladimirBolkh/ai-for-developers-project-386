@@ -1,5 +1,12 @@
 import { vi } from 'vitest'
-import type { BookingRequest, EventType, Meeting, WorkingHours } from '@/api'
+import type {
+  BookingRequest,
+  EventType,
+  EventTypeCreate,
+  EventTypeUpdate,
+  Meeting,
+  WorkingHours,
+} from '@/api'
 
 // Стабы типизированного API-клиента. Типизированы от моделей `@/api`,
 // поэтому дрейф контракта (переименование/удаление поля) ломает тесты.
@@ -19,15 +26,17 @@ export const sdkMocks = {
     .mockResolvedValue({ data: undefined, error: undefined }),
   bookingsList: vi.fn<SdkFn<Meeting[]>>().mockResolvedValue({ data: [], error: undefined }),
   eventTypesCreate: vi
-    .fn<SdkFn<EventType>>()
+    .fn<SdkFn<EventType, { body: EventTypeCreate }>>()
     .mockResolvedValue({ data: undefined, error: undefined }),
   eventTypesList: vi.fn<SdkFn<EventType[]>>().mockResolvedValue({ data: [], error: undefined }),
   eventTypesRead: vi
-    .fn<SdkFn<EventType>>()
+    .fn<SdkFn<EventType, { path: { id: string } }>>()
     .mockResolvedValue({ data: undefined, error: undefined }),
-  eventTypesRemove: vi.fn<SdkFn<void>>().mockResolvedValue({ data: undefined, error: undefined }),
+  eventTypesRemove: vi
+    .fn<SdkFn<void, { path: { id: string } }>>()
+    .mockResolvedValue({ data: undefined, error: undefined }),
   eventTypesUpdate: vi
-    .fn<SdkFn<EventType>>()
+    .fn<SdkFn<EventType, { path: { id: string }; body: EventTypeUpdate }>>()
     .mockResolvedValue({ data: undefined, error: undefined }),
   workingHoursOperationsGet: vi
     .fn<SdkFn<WorkingHours>>()

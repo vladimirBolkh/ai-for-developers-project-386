@@ -1,5 +1,6 @@
 import { availabilityGet, bookingsCreate, eventTypesList } from '@/api'
 import type { EventType, Meeting } from '@/api'
+import { formatLabel, formatSlot } from '@/lib/format'
 import {
   Badge,
   Button,
@@ -15,16 +16,6 @@ import {
 } from '@mantine/core'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-
-const formatLabel: Record<EventType['format'], string> = {
-  online: 'онлайн',
-  offline: 'оффлайн',
-}
-
-// Детерминированный вывод «дата · время» из ISO-момента (без конвертации таймзоны).
-function formatSlot(iso: string) {
-  return `${iso.slice(0, 10)} · ${iso.slice(11, 16)}`
-}
 
 export default function BookPage() {
   const [types, setTypes] = useState<EventType[] | null>(null)

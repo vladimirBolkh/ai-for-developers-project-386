@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import BookPage from '@/pages/BookPage'
 import HomePage from '@/pages/HomePage'
+import OwnerPage from '@/pages/OwnerPage'
 
 export default function App() {
   useEffect(() => {
@@ -21,6 +22,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/book" element={<BookPage />} />
+          <Route path="/owner" element={<OwnerPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
