@@ -6,10 +6,12 @@ import type { EventType, Meeting, WorkingHours } from '@/api'
 // Регистрируются на весь прогон через vi.mock (см. test/setup.ts).
 type ApiResult<T> = { data: T; error: undefined } | { data: undefined; error: unknown }
 
-type SdkFn<T> = (options?: unknown) => Promise<ApiResult<T>>
+type SdkFn<T, O = unknown> = (options?: O) => Promise<ApiResult<T>>
 
 export const sdkMocks = {
-  availabilityGet: vi.fn<SdkFn<string[]>>().mockResolvedValue({ data: [], error: undefined }),
+  availabilityGet: vi
+    .fn<SdkFn<string[], { query: { eventTypeId: string } }>>()
+    .mockResolvedValue({ data: [], error: undefined }),
   bookingsCreate: vi.fn<SdkFn<Meeting>>().mockResolvedValue({ data: undefined, error: undefined }),
   bookingsList: vi.fn<SdkFn<Meeting[]>>().mockResolvedValue({ data: [], error: undefined }),
   eventTypesCreate: vi
