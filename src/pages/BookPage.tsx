@@ -35,7 +35,9 @@ export default function BookPage() {
   const [guestName, setGuestName] = useState('')
   const [guestEmail, setGuestEmail] = useState('')
   const [nameError, setNameError] = useState<string | null>(null)
-  const [bookingError, setBookingError] = useState<'conflict' | 'validation' | null>(null)
+  const [bookingError, setBookingError] = useState<'conflict' | 'validation' | 'unknown' | null>(
+    null,
+  )
   const [confirmed, setConfirmed] = useState<Meeting | null>(null)
 
   useEffect(() => {
@@ -105,8 +107,10 @@ export default function BookPage() {
       } else if (result.response?.status === 409) {
         setBookingError('conflict')
         setSelectedSlot(null)
-      } else {
+      } else if (result.response?.status === 400) {
         setBookingError('validation')
+      } else {
+        setBookingError('unknown')
       }
     })
   }
@@ -215,6 +219,9 @@ export default function BookPage() {
               />
               {bookingError === 'validation' && (
                 <Text c="red">Не удалось создать запись. Проверьте введённые данные.</Text>
+              )}
+              {bookingError === 'unknown' && (
+                <Text c="red">Что-то пошло не так. Попробуйте позже.</Text>
               )}
               <Button onClick={submitBooking}>Подтвердить запись</Button>
             </Stack>

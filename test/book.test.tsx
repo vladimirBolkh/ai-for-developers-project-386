@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { EventType, Meeting } from '@/api'
 import { MemoryRouter } from 'react-router-dom'
@@ -171,8 +171,12 @@ describe('Подтверждение записи', () => {
     await userEvent.type(screen.getByLabelText(/Имя/), 'Анна')
     await userEvent.click(screen.getByRole('button', { name: /Подтвердить запись/ }))
 
-    expect(await screen.findByText('Вы записаны')).toBeInTheDocument()
-    expect(screen.getByText('Гость: Анна')).toBeInTheDocument()
+    const confirmation = await screen.findByRole('heading', { name: 'Вы записаны' })
+    const card = confirmation.parentElement
+    if (!card) throw new Error('card not found')
+    expect(within(card).getByText('Консультация')).toBeInTheDocument()
+    expect(within(card).getByText('2026-10-21 · 09:00')).toBeInTheDocument()
+    expect(within(card).getByText('Гость: Анна')).toBeInTheDocument()
     expect(sdkMocks.bookingsCreate).toHaveBeenCalledWith({
       body: {
         eventTypeId: '1',
@@ -210,5 +214,18 @@ describe('Подтверждение записи', () => {
 
     expect(await screen.findByText(/Не удалось создать запись/i)).toBeInTheDocument()
     expect(screen.getByText('Ваши данные')).toBeInTheDocument()
+  })
+
+  it('при серверной/сетевой ошибке показывает общее сообщение', async () => {
+    sdkMocks.bookingsCreate.mockResolvedValue({
+      data: undefined,
+      error: { message: 'boom' },
+    })
+
+    await pickSlotAndOpenForm()
+    await userEvent.type(screen.getByLabelText(/Имя/), 'Анна')
+    await userEvent.click(screen.getByRole('button', { name: /Подтвердить запись/ }))
+
+    expect(await screen.findByText(/Что-то пошло не так/i)).toBeInTheDocument()
   })
 })
