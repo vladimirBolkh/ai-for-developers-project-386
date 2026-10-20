@@ -215,67 +215,109 @@ export const schemas = [
       ],
       "properties": {
         "monday": {
-          "type": "object",
-          "allOf": [
+          "anyOf": [
             {
-              "$ref": "DayHours"
+              "type": "object",
+              "allOf": [
+                {
+                  "$ref": "DayHours"
+                }
+              ]
+            },
+            {
+              "type": "null"
             }
-          ],
-          "nullable": true
+          ]
         },
         "tuesday": {
-          "type": "object",
-          "allOf": [
+          "anyOf": [
             {
-              "$ref": "DayHours"
+              "type": "object",
+              "allOf": [
+                {
+                  "$ref": "DayHours"
+                }
+              ]
+            },
+            {
+              "type": "null"
             }
-          ],
-          "nullable": true
+          ]
         },
         "wednesday": {
-          "type": "object",
-          "allOf": [
+          "anyOf": [
             {
-              "$ref": "DayHours"
+              "type": "object",
+              "allOf": [
+                {
+                  "$ref": "DayHours"
+                }
+              ]
+            },
+            {
+              "type": "null"
             }
-          ],
-          "nullable": true
+          ]
         },
         "thursday": {
-          "type": "object",
-          "allOf": [
+          "anyOf": [
             {
-              "$ref": "DayHours"
+              "type": "object",
+              "allOf": [
+                {
+                  "$ref": "DayHours"
+                }
+              ]
+            },
+            {
+              "type": "null"
             }
-          ],
-          "nullable": true
+          ]
         },
         "friday": {
-          "type": "object",
-          "allOf": [
+          "anyOf": [
             {
-              "$ref": "DayHours"
+              "type": "object",
+              "allOf": [
+                {
+                  "$ref": "DayHours"
+                }
+              ]
+            },
+            {
+              "type": "null"
             }
-          ],
-          "nullable": true
+          ]
         },
         "saturday": {
-          "type": "object",
-          "allOf": [
+          "anyOf": [
             {
-              "$ref": "DayHours"
+              "type": "object",
+              "allOf": [
+                {
+                  "$ref": "DayHours"
+                }
+              ]
+            },
+            {
+              "type": "null"
             }
-          ],
-          "nullable": true
+          ]
         },
         "sunday": {
-          "type": "object",
-          "allOf": [
+          "anyOf": [
             {
-              "$ref": "DayHours"
+              "type": "object",
+              "allOf": [
+                {
+                  "$ref": "DayHours"
+                }
+              ]
+            },
+            {
+              "type": "null"
             }
-          ],
-          "nullable": true
+          ]
         }
       }
     },

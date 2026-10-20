@@ -18,7 +18,14 @@ function rewriteRefs(node) {
       if (match) return { $ref: match[1] }
     }
     const out = {}
-    for (const [key, value] of Object.entries(node)) out[key] = rewriteRefs(value)
+    for (const [key, value] of Object.entries(node)) {
+      if (key === 'nullable') continue // обрабатывается ниже
+      out[key] = rewriteRefs(value)
+    }
+    // OpenAPI 3.0 `nullable: true` — не ключевое слово JSON Schema, ajv его
+    // игнорирует. Без трансляции `null` (выходной день) отсекается проверкой
+    // `type: object` из allOf → 400 на сохранении. Превращаем в anyOf с null-типом.
+    if (node.nullable) return { anyOf: [out, { type: 'null' }] }
     return out
   }
   return node
