@@ -1,4 +1,6 @@
+import { eventTypesList } from '@/api'
 import { Button, Container, Group, Paper, SimpleGrid, Stack, Text, Title } from '@mantine/core'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 const steps = [
@@ -20,6 +22,20 @@ const steps = [
 ]
 
 export default function HomePage() {
+  const [eventTypesCount, setEventTypesCount] = useState<number | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    eventTypesList()
+      .then((result) => {
+        if (!cancelled && result.data) setEventTypesCount(result.data.length)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   return (
     <Container size="md" py="xl">
       <Stack gap="xl" align="center" ta="center">
@@ -38,6 +54,11 @@ export default function HomePage() {
             Бронируй время для встреч без переписки: владелец публикует свободное время, ты
             выбираешь слот и записываешься.
           </Text>
+          {eventTypesCount !== null && (
+            <Text c="dimmed" size="sm">
+              Доступно типов встреч: {eventTypesCount}
+            </Text>
+          )}
           <Group justify="center" mt="sm">
             <Button component={Link} to="/book" size="md">
               Записаться на встречу

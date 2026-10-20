@@ -12,6 +12,8 @@
     "preview": "vite preview",
     "spec:openapi": "tsp compile spec",
     "spec:client": "openapi-ts -i ./spec/openapi.yaml -o ./src/api-client",
+    "spec:server": "node scripts/generate-server.mjs",
+    "spec:all": "node scripts/clean.mjs && npm run spec:openapi && npm run spec:client && npm run spec:server",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -25,6 +27,7 @@
     "@mantine/dates": "^9.7.3",
     "@mantine/hooks": "^9.7.3",
     "dayjs": "^1.11.23",
+    "fastify": "^5.12.7",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-router-dom": "^7.18.4"
@@ -56,7 +59,8 @@
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.71.2",
     "vite": "^8.3.0",
-    "vitest": "^5.0.5"
+    "vitest": "^5.0.5",
+    "yaml": "^2.9.1"
   },
   "prettier": {
     "printWidth": 100,

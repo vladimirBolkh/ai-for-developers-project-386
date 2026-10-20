@@ -1,0 +1,282 @@
+// Auto-generated from spec/openapi.yaml. Do not edit.
+
+export const schemas = [
+  {
+      "$id": "BookingRequest",
+      "type": "object",
+      "required": [
+        "eventTypeId",
+        "startDateTime",
+        "guestName"
+      ],
+      "properties": {
+        "eventTypeId": {
+          "type": "string"
+        },
+        "startDateTime": {
+          "type": "string"
+        },
+        "guestName": {
+          "type": "string"
+        },
+        "guestEmail": {
+          "type": "string"
+        }
+      }
+    },
+  {
+      "$id": "ConflictError",
+      "type": "object",
+      "required": [
+        "message"
+      ],
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+  {
+      "$id": "DayHours",
+      "type": "object",
+      "required": [
+        "start",
+        "end"
+      ],
+      "properties": {
+        "start": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        }
+      }
+    },
+  {
+      "$id": "EventType",
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "description",
+        "durationMinutes",
+        "format"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "durationMinutes": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "format": {
+          "$ref": "MeetingFormat"
+        }
+      }
+    },
+  {
+      "$id": "EventTypeCreate",
+      "type": "object",
+      "required": [
+        "name",
+        "description",
+        "durationMinutes",
+        "format"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "durationMinutes": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "format": {
+          "$ref": "MeetingFormat"
+        }
+      }
+    },
+  {
+      "$id": "EventTypeUpdate",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "durationMinutes": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "format": {
+          "$ref": "MeetingFormat"
+        }
+      }
+    },
+  {
+      "$id": "Meeting",
+      "type": "object",
+      "required": [
+        "id",
+        "eventTypeId",
+        "eventTypeName",
+        "eventTypeDescription",
+        "eventTypeDurationMinutes",
+        "eventTypeFormat",
+        "startDateTime",
+        "guestName"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "eventTypeId": {
+          "type": "string"
+        },
+        "eventTypeName": {
+          "type": "string"
+        },
+        "eventTypeDescription": {
+          "type": "string"
+        },
+        "eventTypeDurationMinutes": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "eventTypeFormat": {
+          "$ref": "MeetingFormat"
+        },
+        "startDateTime": {
+          "type": "string"
+        },
+        "guestName": {
+          "type": "string"
+        },
+        "guestEmail": {
+          "type": "string"
+        }
+      }
+    },
+  {
+      "$id": "MeetingFormat",
+      "type": "string",
+      "enum": [
+        "online",
+        "offline"
+      ]
+    },
+  {
+      "$id": "NotFoundError",
+      "type": "object",
+      "required": [
+        "message"
+      ],
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+  {
+      "$id": "ValidationError",
+      "type": "object",
+      "required": [
+        "message"
+      ],
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+  {
+      "$id": "WorkingHours",
+      "type": "object",
+      "required": [
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday"
+      ],
+      "properties": {
+        "monday": {
+          "type": "object",
+          "allOf": [
+            {
+              "$ref": "DayHours"
+            }
+          ],
+          "nullable": true
+        },
+        "tuesday": {
+          "type": "object",
+          "allOf": [
+            {
+              "$ref": "DayHours"
+            }
+          ],
+          "nullable": true
+        },
+        "wednesday": {
+          "type": "object",
+          "allOf": [
+            {
+              "$ref": "DayHours"
+            }
+          ],
+          "nullable": true
+        },
+        "thursday": {
+          "type": "object",
+          "allOf": [
+            {
+              "$ref": "DayHours"
+            }
+          ],
+          "nullable": true
+        },
+        "friday": {
+          "type": "object",
+          "allOf": [
+            {
+              "$ref": "DayHours"
+            }
+          ],
+          "nullable": true
+        },
+        "saturday": {
+          "type": "object",
+          "allOf": [
+            {
+              "$ref": "DayHours"
+            }
+          ],
+          "nullable": true
+        },
+        "sunday": {
+          "type": "object",
+          "allOf": [
+            {
+              "$ref": "DayHours"
+            }
+          ],
+          "nullable": true
+        }
+      }
+    },
+]
