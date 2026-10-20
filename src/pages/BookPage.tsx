@@ -27,7 +27,8 @@ export default function BookPage() {
   useEffect(() => {
     let cancelled = false
     eventTypesList().then((result) => {
-      if (!cancelled && result.data) setTypes(result.data)
+      // Ошибка и пустой список одинаково дают пустое состояние, а не вечный спиннер.
+      if (!cancelled) setTypes(result.data ?? [])
     })
     return () => {
       cancelled = true
