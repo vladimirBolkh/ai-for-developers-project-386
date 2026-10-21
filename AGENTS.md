@@ -10,6 +10,7 @@ SPA «calls_calendar»: **Vite 8 + React 19 + TypeScript 6 + Mantine 9** (+ `@ma
 
 - `npm run dev` — dev-сервер на `http://localhost:5173`
 - `npm run server` — in-memory dev-бэкенд (Fastify на `:8080`, все маршруты под `/api`); чтобы UI ходил в API, задайте `VITE_API_PROXY=http://localhost:8080` в `.env` и перезапустите `npm run dev`
+- `npm run dev:all` — клиент и бэкенд одной командой (`concurrently`): поднимает `npm run server` + `npm run dev` с общим `.env`/`VITE_API_PROXY`
 - `npm test` — vitest (один файл: `npx vitest run test/main.test.tsx`), `npm run test:watch`
 - `npm run lint` / `npm run format:check` / `npm run format`
 - `npm run build` — `tsc -b && vite build`, т.е. typecheck + сборка одной командой

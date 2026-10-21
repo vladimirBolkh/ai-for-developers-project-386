@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "vite",
     "server": "tsx server/main.ts",
+    "dev:all": "concurrently -n server,web -c blue,green \"npm run server\" \"npm run dev\"",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "spec:openapi": "tsp compile spec",
@@ -47,6 +48,7 @@
     "@typespec/http": "^1.17.0",
     "@typespec/openapi3": "^1.17.0",
     "@vitejs/plugin-react": "^6.1.2",
+    "concurrently": "^10.0.6",
     "eslint": "^10.13.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.1.1",
