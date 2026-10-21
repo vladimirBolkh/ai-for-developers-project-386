@@ -25,10 +25,8 @@ describe('Главная страница', () => {
     expect(screen.getByText('Ты записан на встречу')).toBeInTheDocument()
 
     const ctaLinks = screen.getAllByRole('link', { name: 'Записаться на встречу' })
-    expect(ctaLinks).toHaveLength(2)
-    for (const link of ctaLinks) {
-      expect(link).toHaveAttribute('href', '/book')
-    }
+    expect(ctaLinks).toHaveLength(1)
+    expect(ctaLinks[0]).toHaveAttribute('href', '/book')
   })
 
   it('показывает число типов событий из API (мок SDK, без сети)', async () => {

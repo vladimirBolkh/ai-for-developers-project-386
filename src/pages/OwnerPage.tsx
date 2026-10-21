@@ -113,7 +113,7 @@ export default function OwnerPage() {
   return (
     <Container size="sm" py="xl">
       <Stack gap="md">
-        <Title order={1}>Мои типы встреч</Title>
+        <Title order={1}>Терминал владельца</Title>
         <Text c="dimmed">Создавайте типы встреч, по которым записываются гости.</Text>
 
         <Group>
