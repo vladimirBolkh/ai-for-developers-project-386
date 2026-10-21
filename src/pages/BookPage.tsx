@@ -30,6 +30,13 @@ function dayKey(iso: string) {
   return dayjs(iso).format('YYYY-MM-DD')
 }
 
+// Текущий размер календаря (7 ячеек по --day-size ≈ 2.25rem при size="sm" +
+// зазоры ячеек) — это же минимум блока: Paper не сжимается ниже, сколько бы ни
+// уменьшался блок. Считаем в border-box, поэтому прибавляем padding p="md"
+// и рамку withBorder. Календарь fullWidth растягивается по ширине блока вверх
+// от этого минимума.
+const CALENDAR_MIN_WIDTH = 'calc(7 * 2.25rem * var(--mantine-scale, 1) + 8px + 2 * 1rem + 2px)'
+
 export default function BookPage() {
   const [types, setTypes] = useState<EventType[] | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -283,7 +290,13 @@ export default function BookPage() {
             <>
               {/* Календарь */}
               <Grid.Col span={{ base: 12, md: 4 }}>
-                <Paper withBorder p="md" radius="md" h="100%">
+                <Paper
+                  withBorder
+                  p="md"
+                  radius="md"
+                  h="100%"
+                  style={{ minWidth: CALENDAR_MIN_WIDTH }}
+                >
                   <Title order={3} mb="sm">
                     Календарь
                   </Title>
@@ -293,10 +306,16 @@ export default function BookPage() {
                     <Loader size="sm" />
                   ) : (
                     <Calendar
+                      w="100%"
+                      fullWidth
                       defaultDate={selectedDay ?? todayLabel}
                       minDate={todayLabel}
                       maxDate={maxSlotDay ?? undefined}
                       maxLevel="month"
+                      // fullWidth растягивает календарь по ширине блока; day не
+                      // даёт ячейке сжаться ниже текущего размера (--day-size).
+                      // Общий минимум блока задаёт CALENDAR_MIN_WIDTH на Paper.
+                      styles={{ day: { minWidth: 'var(--day-size)' } }}
                       getDayProps={(date: string) => {
                         const available = availableDays.has(date)
                         const isSelected = date === selectedDay
