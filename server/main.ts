@@ -4,9 +4,12 @@
 import { buildServer } from './index'
 
 const port = Number(process.env.PORT ?? 8080)
+// 0.0.0.0 обязательно для контейнера/хостинга: слушать только localhost —
+// порт недоступен снаружи. Локально это просто «все интерфейсы».
+const host = process.env.HOST ?? '0.0.0.0'
 
 buildServer()
-  .listen({ port, host: '127.0.0.1' })
+  .listen({ port, host })
   .then((url) => {
     console.log(`API server listening on ${url}/api`)
   })
