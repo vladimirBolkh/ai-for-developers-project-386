@@ -2,6 +2,8 @@
 
 Web-приложение: **Vite + React + TypeScript + Mantine 9** (UI) + **dayjs** (даты, для `@mantine/dates`).
 
+Прод: **https://calls-calendar.onrender.com** (Render, авто-деплой по пушу в `master`).
+
 ## Команды
 
 ```bash
@@ -35,3 +37,12 @@ VITE_API_PROXY=http://localhost:8080
 ```ts
 import App from '@/App'
 ```
+
+## Деплой
+
+Прод-сборка запускается в Docker-контейнере на **Render** (web service `calls-calendar`, регион Frankfurt, free-тариф): https://calls-calendar.onrender.com
+
+- `Dockerfile` — multi-stage: собирает SPA (`npm run build`) и бандлит dev-бэкенд (`server/main.ts` через esbuild), в рантайм идут только prod-зависимости. Один процесс на порту `PORT` (по умолчанию 8080) отдаёт и статику из `dist/` (с SPA-fallback для react-router), и API под `/api`.
+- Локально то же самое: `docker build -t calls-calendar .` → `docker run -p 8080:8080 calls-calendar`.
+- **Как деплоить**: push в `master` → Render собирает Dockerfile и выкатывает (auto-deploy). Если авто-деплой не сработал — кнопка *Redeploy* в [дашборде Render](https://dashboard.render.com/web/srv-dbcden0ae00c739df9kg) или Render MCP (`trigger_deploy`).
+- ⚠️ Данные хранятся in-memory (`server/store.ts`): при каждом редеплое/рестарте сервиса записи стираются.
