@@ -1,5 +1,6 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { vi } from 'vitest'
 import type { EventType, Meeting, Slot } from '@/api'
 import { MemoryRouter } from 'react-router-dom'
 import BookPage from '@/pages/BookPage'
@@ -303,5 +304,116 @@ describe('Подтверждение записи', () => {
     await userEvent.click(screen.getByRole('button', { name: /Подтвердить запись/ }))
 
     expect(await screen.findByText(/Что-то пошло не так/i)).toBeInTheDocument()
+  })
+})
+
+describe('Прокрутка списка к доступным слотам', () => {
+  // jsdom не считает layout: подменяем метрики viewport'а (scrollHeight/
+  // clientHeight) и координаты (getBoundingClientRect), чтобы формула
+  // прокрутки получала такие же значения, как в браузере. Откат — в afterEach.
+  const savedMetrics: { name: 'scrollHeight' | 'clientHeight'; descriptor: PropertyDescriptor }[] =
+    []
+
+  function domRect(top: number): DOMRect {
+    return {
+      x: 0,
+      y: top,
+      width: 0,
+      height: 0,
+      top,
+      right: 0,
+      bottom: top,
+      left: 0,
+      toJSON: () => ({}),
+    }
+  }
+
+  function mockScrollGeometry(opts: {
+    scrollHeight: number
+    clientHeight: number
+    freeTop: number
+  }) {
+    for (const name of ['scrollHeight', 'clientHeight'] as const) {
+      const descriptor = Object.getOwnPropertyDescriptor(Element.prototype, name)
+      if (!descriptor) continue
+      savedMetrics.push({ name, descriptor })
+      Object.defineProperty(Element.prototype, name, {
+        ...descriptor,
+        get(this: Element) {
+          if (this.hasAttribute('data-scrollarea-viewport')) return opts[name]
+          return descriptor.get?.call(this) ?? 0
+        },
+      })
+    }
+    const originalRect = Element.prototype.getBoundingClientRect
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: Element,
+    ) {
+      if (this.hasAttribute('data-scrollarea-viewport')) return domRect(0)
+      if (this.getAttribute('data-status') === 'free') {
+        // Как в браузере: визуальный отступ свободного слота уменьшается
+        // на текущую прокрутку — тогда повторный прогон эффекта идемпотентен.
+        const viewport = document.querySelector('[data-scrollarea-viewport]')
+        return domRect(opts.freeTop - (viewport?.scrollTop ?? 0))
+      }
+      return originalRect.call(this) as DOMRect
+    })
+  }
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+    while (savedMetrics.length > 0) {
+      const saved = savedMetrics.pop()
+      if (saved) Object.defineProperty(Element.prototype, saved.name, saved.descriptor)
+    }
+  })
+
+  async function findSlotsViewport() {
+    await screen.findByText(/2026-10-21 · 09:30/)
+    const viewport = document.querySelector('[data-scrollarea-viewport]')
+    expect(viewport).not.toBeNull()
+    return viewport as HTMLElement
+  }
+
+  const dayWithBusyPrefix: Slot[] = [
+    { startDateTime: at(2026, 9, 21, 9, 0), status: 'busy' },
+    { startDateTime: at(2026, 9, 21, 9, 15), status: 'busy' },
+    free(at(2026, 9, 21, 9, 30)),
+  ]
+
+  it('список длиннее блока начинается с первого свободного слота', async () => {
+    sdkMocks.eventTypesList.mockResolvedValue({ data: [consultation], error: undefined })
+    sdkMocks.availabilityGet.mockResolvedValue({ data: dayWithBusyPrefix, error: undefined })
+    // Свободный слот помещается наверху (250 < maxScroll 700) — ставим его первым.
+    mockScrollGeometry({ scrollHeight: 1000, clientHeight: 300, freeTop: 250 })
+
+    renderBookPage()
+    const viewport = await findSlotsViewport()
+
+    await waitFor(() => expect(viewport.scrollTop).toBe(250))
+  })
+
+  it('свободный слот у самого хвоста — список прокручивается до конца', async () => {
+    sdkMocks.eventTypesList.mockResolvedValue({ data: [consultation], error: undefined })
+    sdkMocks.availabilityGet.mockResolvedValue({ data: dayWithBusyPrefix, error: undefined })
+    // Поднять первый свободный наверх некуда (900 > maxScroll 700) — упираемся в конец.
+    mockScrollGeometry({ scrollHeight: 1000, clientHeight: 300, freeTop: 900 })
+
+    renderBookPage()
+    const viewport = await findSlotsViewport()
+
+    await waitFor(() => expect(viewport.scrollTop).toBe(700))
+  })
+
+  it('всё, что помещается в блок, остаётся без прокрутки', async () => {
+    sdkMocks.eventTypesList.mockResolvedValue({ data: [consultation], error: undefined })
+    sdkMocks.availabilityGet.mockResolvedValue({ data: dayWithBusyPrefix, error: undefined })
+    // Список короче блока (maxScroll = 0) — прокрутить некуда.
+    mockScrollGeometry({ scrollHeight: 300, clientHeight: 300, freeTop: 250 })
+
+    renderBookPage()
+    const viewport = await findSlotsViewport()
+
+    await waitFor(() => expect(viewport.scrollTop).toBe(0))
   })
 })

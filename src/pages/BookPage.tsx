@@ -20,7 +20,7 @@ import {
 } from '@mantine/core'
 import { Calendar } from '@mantine/dates'
 import dayjs from 'dayjs'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 // Каноничная метка дня — локальная дата ISO-момента (строго та же часть даты,
@@ -114,6 +114,29 @@ export default function BookPage() {
     if (!slots || !selectedDay) return []
     return slots.filter((slot) => dayKey(slot.startDateTime) === selectedDay)
   }, [slots, selectedDay])
+
+  const slotsViewport = useRef<HTMLDivElement>(null)
+
+  // При каждой отрисовке списка (открытие страницы, смена дня, перезагрузка
+  // после брони, возврат из формы гостя) показываем доступные слоты без ручной
+  // прокрутки: первый свободный слот встаёт первым видимым. Если поднять его
+  // наверх некуда — список уходит до конца, и хвост с оставшимися свободными
+  // слотами тоже виден. Всё, что помещается в блок, остаётся сверху.
+  useEffect(() => {
+    const viewport = slotsViewport.current
+    if (!viewport) return
+    const firstFree = viewport.querySelector<HTMLElement>('[data-status="free"]')
+    if (!firstFree) {
+      viewport.scrollTop = 0
+      return
+    }
+    const top =
+      firstFree.getBoundingClientRect().top -
+      viewport.getBoundingClientRect().top +
+      viewport.scrollTop
+    const maxScroll = Math.max(viewport.scrollHeight - viewport.clientHeight, 0)
+    viewport.scrollTop = Math.min(Math.max(top, 0), maxScroll)
+  })
 
   const todayLabel = useMemo(() => dayjs().format('YYYY-MM-DD'), [])
   const selected = types?.find((type) => type.id === selectedId)
@@ -366,7 +389,7 @@ export default function BookPage() {
                   ) : daySlots.length === 0 ? (
                     <Text c="dimmed">В этот день нет слотов.</Text>
                   ) : (
-                    <ScrollArea h={380} type="auto" offsetScrollbars>
+                    <ScrollArea h={380} type="auto" offsetScrollbars viewportRef={slotsViewport}>
                       <Stack gap="xs">
                         {daySlots.map((slot) => {
                           const isFree = slot.status === 'free'
@@ -374,6 +397,7 @@ export default function BookPage() {
                           return (
                             <UnstyledButton
                               key={slot.startDateTime}
+                              data-status={slot.status}
                               disabled={!isFree}
                               onClick={() => isFree && pickSlot(slot.startDateTime)}
                               aria-pressed={isSelected}
