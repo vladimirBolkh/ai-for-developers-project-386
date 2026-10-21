@@ -44,5 +44,5 @@ import App from '@/App'
 
 - `Dockerfile` — multi-stage: собирает SPA (`npm run build`) и бандлит dev-бэкенд (`server/main.ts` через esbuild), в рантайм идут только prod-зависимости. Один процесс на порту `PORT` (по умолчанию 8080) отдаёт и статику из `dist/` (с SPA-fallback для react-router), и API под `/api`.
 - Локально то же самое: `docker build -t calls-calendar .` → `docker run -p 8080:8080 calls-calendar`.
-- **Как деплоить**: push в `master` → Render собирает Dockerfile и выкатывает (auto-deploy). Если авто-деплой не сработал — кнопка *Redeploy* в [дашборде Render](https://dashboard.render.com/web/srv-dbcden0ae00c739df9kg) или Render MCP (`trigger_deploy`).
+- **Как деплоить**: push в `master` → Render собирает Dockerfile и выкатывает (auto-deploy). Если авто-деплой не сработал — кнопка _Redeploy_ в [дашборде Render](https://dashboard.render.com/web/srv-dbcden0ae00c739df9kg) или Render MCP (`trigger_deploy`).
 - ⚠️ Данные хранятся in-memory (`server/store.ts`): при каждом редеплое/рестарте сервиса записи стираются.
