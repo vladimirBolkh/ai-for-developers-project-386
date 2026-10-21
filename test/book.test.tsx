@@ -115,6 +115,23 @@ describe('Выбор слота', () => {
     })
   })
 
+  it('фильтрует слоты по выбранной дате — календарь сокращает длинный список', async () => {
+    sdkMocks.eventTypesList.mockResolvedValue({ data: [consultation], error: undefined })
+    sdkMocks.availabilityGet.mockResolvedValue({
+      data: ['2026-10-21T09:00:00+03:00', '2026-10-22T10:00:00+03:00'],
+      error: undefined,
+    })
+
+    renderBookPage()
+    await userEvent.click(await screen.findByRole('button', { name: /Консультация/ }))
+
+    // Авто-выбрана первая доступная дата (21.10): её слот виден, слот 22.10 скрыт.
+    expect(await screen.findByText(/2026-10-21 · 09:00/)).toBeInTheDocument()
+    expect(screen.queryByText(/2026-10-22 · 10:00/)).not.toBeInTheDocument()
+    // Сам календарь отрисован.
+    expect(screen.getByLabelText('Дата')).toBeInTheDocument()
+  })
+
   it('пересчитывает слоты при смене типа', async () => {
     sdkMocks.eventTypesList.mockResolvedValue({ data: [consultation, call], error: undefined })
     sdkMocks.availabilityGet
