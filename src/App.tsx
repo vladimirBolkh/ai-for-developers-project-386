@@ -4,7 +4,6 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import AppHeader from '@/components/AppHeader'
 import BookPage from '@/pages/BookPage'
 import HomePage from '@/pages/HomePage'
-import MeetingsPage from '@/pages/MeetingsPage'
 import OwnerPage from '@/pages/OwnerPage'
 import WorkingHoursPage from '@/pages/WorkingHoursPage'
 
@@ -27,7 +26,8 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/book" element={<BookPage />} />
           <Route path="/owner" element={<OwnerPage />} />
-          <Route path="/meetings" element={<MeetingsPage />} />
+          {/* Отдельного окна встреч больше нет — встречи живут в терминале. */}
+          <Route path="/meetings" element={<Navigate to="/owner" replace />} />
           <Route path="/hours" element={<WorkingHoursPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

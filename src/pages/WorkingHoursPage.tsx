@@ -1,37 +1,9 @@
 import { workingHoursOperationsGet, workingHoursOperationsSet } from '@/api'
 import type { DayHours, WorkingHours } from '@/api'
+import { days, defaultHours, isUnconfigured, type DayKey } from '@/lib/hours'
 import { Badge, Button, Container, Group, Loader, Paper, Stack, Text, Title } from '@mantine/core'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-
-const days = [
-  { key: 'monday', label: 'Понедельник' },
-  { key: 'tuesday', label: 'Вторник' },
-  { key: 'wednesday', label: 'Среда' },
-  { key: 'thursday', label: 'Четверг' },
-  { key: 'friday', label: 'Пятница' },
-  { key: 'saturday', label: 'Суббота' },
-  { key: 'sunday', label: 'Воскресенье' },
-] as const
-
-type DayKey = (typeof days)[number]['key']
-
-// Продуктовый дефолт: будни 09:00–18:00, выходные — выходной.
-const defaultHours: WorkingHours = {
-  monday: { start: '09:00', end: '18:00' },
-  tuesday: { start: '09:00', end: '18:00' },
-  wednesday: { start: '09:00', end: '18:00' },
-  thursday: { start: '09:00', end: '18:00' },
-  friday: { start: '09:00', end: '18:00' },
-  saturday: null,
-  sunday: null,
-}
-
-// Не настроено (все дни пустые) → показываем продуктовый дефолт.
-// Ограничение: клиент не отличает «никогда не настраивалось» от «сохранил всё выкл».
-function isUnconfigured(hours: WorkingHours) {
-  return days.every(({ key }) => hours[key] === null)
-}
 
 // Шаг 15 минут: минуты времени должны быть кратны 15.
 function isQuarterHour(time: string) {
@@ -178,7 +150,7 @@ export default function WorkingHoursPage() {
 
         <div>
           <Button component={Link} to="/owner" variant="subtle" px={0}>
-            ← К типам встреч
+            ← Терминал владельца
           </Button>
         </div>
       </Stack>

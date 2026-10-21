@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import type { EventType } from '@/api'
+import type { EventType, Meeting, WorkingHours } from '@/api'
 import { MemoryRouter } from 'react-router-dom'
 import OwnerPage from '@/pages/OwnerPage'
 import { resetSdkMocks, sdkMocks } from './sdk-mock'
@@ -12,6 +12,29 @@ const consultation: EventType = {
   description: 'Разбор вопроса',
   durationMinutes: 30,
   format: 'online',
+}
+
+const meeting: Meeting = {
+  id: 'm1',
+  eventTypeId: '1',
+  eventTypeName: 'Консультация',
+  eventTypeDescription: 'Разбор вопроса',
+  eventTypeDurationMinutes: 30,
+  eventTypeFormat: 'online',
+  // Момент 09:00 локального времени — вывод formatSlot тоже локальный, поэтому
+  // тест одинаково проходит в любом поясе (включая UTC в CI).
+  startDateTime: new Date(2026, 9, 21, 9, 0).toISOString(),
+  guestName: 'Анна',
+}
+
+const configuredHours: WorkingHours = {
+  monday: { start: '09:00', end: '18:00' },
+  tuesday: { start: '09:00', end: '18:00' },
+  wednesday: { start: '09:00', end: '18:00' },
+  thursday: { start: '09:00', end: '18:00' },
+  friday: { start: '09:00', end: '18:00' },
+  saturday: null,
+  sunday: null,
 }
 
 function renderOwnerPage() {
@@ -114,5 +137,63 @@ describe('Поверхность владельца', () => {
 
     expect(await screen.findByText('Пока нет типов встреч.')).toBeInTheDocument()
     expect(sdkMocks.eventTypesRemove).toHaveBeenCalledWith({ path: { id: consultation.id } })
+  })
+})
+
+describe('Сводка в терминале владельца', () => {
+  it('показывает краткую сводку существующих типов', async () => {
+    sdkMocks.eventTypesList.mockResolvedValue({ data: [consultation], error: undefined })
+
+    renderOwnerPage()
+
+    expect(await screen.findByText('Консультация — 30 мин')).toBeInTheDocument()
+  })
+
+  it('показывает пустую сводку, когда типов нет', async () => {
+    renderOwnerPage()
+
+    expect(await screen.findByText('Создайте первый тип.')).toBeInTheDocument()
+  })
+
+  it('показывает сжатую сводку настроенных рабочих часов', async () => {
+    sdkMocks.workingHoursOperationsGet.mockResolvedValue({
+      data: configuredHours,
+      error: undefined,
+    })
+
+    renderOwnerPage()
+
+    expect(await screen.findByText('Пн–Пт 09:00–18:00')).toBeInTheDocument()
+    expect(screen.getByText('Сб–Вс — выходной')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Настроить часы' })).toHaveAttribute('href', '/hours')
+  })
+
+  it('предупреждает, когда рабочие часы не настроены', async () => {
+    renderOwnerPage()
+
+    expect(await screen.findByText('Не настроены')).toBeInTheDocument()
+    expect(screen.getByText('Без часов запись невозможна.')).toBeInTheDocument()
+  })
+})
+
+describe('Предстоящие встречи в терминале владельца', () => {
+  it('всегда показывает блок встреч: пустое состояние, когда их нет', async () => {
+    renderOwnerPage()
+
+    expect(
+      await screen.findByRole('heading', { level: 2, name: 'Предстоящие встречи' }),
+    ).toBeInTheDocument()
+    expect(await screen.findByText('Пока нет встреч.')).toBeInTheDocument()
+    expect(sdkMocks.bookingsList).toHaveBeenCalled()
+  })
+
+  it('показывает имя гостя, тип события и время', async () => {
+    sdkMocks.bookingsList.mockResolvedValue({ data: [meeting], error: undefined })
+
+    renderOwnerPage()
+
+    expect(await screen.findByText('Анна')).toBeInTheDocument()
+    expect(screen.getByText('2026-10-21 · 09:00')).toBeInTheDocument()
+    expect(screen.getByText(/30 мин · онлайн/)).toBeInTheDocument()
   })
 })
