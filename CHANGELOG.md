@@ -1,5 +1,30 @@
 # Changelog
 
+## [1.2.0](https://github.com/vladimirBolkh/ai-for-developers-project-386/compare/v1.1.0...v1.2.0) (2026-10-21)
+
+
+### Features
+
+* **book:** add a date calendar that filters the slot list ([4270417](https://github.com/vladimirBolkh/ai-for-developers-project-386/commit/427041730a0d2d4c9882eb2a3dad0afba1551148))
+* **book:** month calendar fills its block, block size floored by calendar ([98a3355](https://github.com/vladimirBolkh/ai-for-developers-project-386/commit/98a335535e5473a2a54a48e2ca75f0b1c8c3ecb7))
+* **book:** scroll slot list to first available slot ([1e60253](https://github.com/vladimirBolkh/ai-for-developers-project-386/commit/1e60253e7e2b888e43a8c9dd3a1b6dcfc4659e28))
+* **book:** three-column layout with month calendar and slot statuses ([e11d6f3](https://github.com/vladimirBolkh/ai-for-developers-project-386/commit/e11d6f37bdabc91a11dceddc249e749e47bf69b1))
+* **owner:** add owner surface with event-type CRUD ([97ce4d0](https://github.com/vladimirBolkh/ai-for-developers-project-386/commit/97ce4d07cfd62adfd53c694b7ab8c8236e97d87b))
+* **owner:** add upcoming meetings list page ([1dd4d85](https://github.com/vladimirBolkh/ai-for-developers-project-386/commit/1dd4d856c50f0cdb51964a2bdf46e3abce11e347))
+* **owner:** add working-hours editor ([fc61473](https://github.com/vladimirBolkh/ai-for-developers-project-386/commit/fc61473befdd2adc221b96ba3e446a8eccba1278))
+* **owner:** dashboard with type/hours summary and upcoming meetings block ([7cb8b7b](https://github.com/vladimirBolkh/ai-for-developers-project-386/commit/7cb8b7ba534c6c748b55c345b3e67dcd759a2266))
+* **server:** implement in-memory Fastify backend with real handlers ([fc7f755](https://github.com/vladimirBolkh/ai-for-developers-project-386/commit/fc7f755d7890e4017f115b379dc135bbd232844f))
+* **ui:** global header, owner terminal rename, two-column home page ([66fcd87](https://github.com/vladimirBolkh/ai-for-developers-project-386/commit/66fcd877b8678593d0f6c885f63b0d5da51e80ff))
+
+
+### Bug Fixes
+
+* **app:** don't white-screen when API returns non-array ([178a93f](https://github.com/vladimirBolkh/ai-for-developers-project-386/commit/178a93f161a2dd8e555fdedfead5207d76fb21bb))
+* **book:** distinguish validation from other booking errors ([93a1aaf](https://github.com/vladimirBolkh/ai-for-developers-project-386/commit/93a1aaf5fe53a7c9e4dd04566f8ba4a804d31546))
+* **owner:** enforce 15-min step and handle hours load errors ([9c24e10](https://github.com/vladimirBolkh/ai-for-developers-project-386/commit/9c24e10249e2aabbff756b2e60163d9e0ddedf69))
+* **server:** translate OpenAPI nullable to JSON Schema for ajv ([00237e2](https://github.com/vladimirBolkh/ai-for-developers-project-386/commit/00237e287a1b602c44051e3ddacc29718217ee77))
+* **ui:** display slot times in the user's local timezone ([b7837bc](https://github.com/vladimirBolkh/ai-for-developers-project-386/commit/b7837bc16b2de958ba2d581e33e71318bc75a718))
+
 ## [1.1.0](https://github.com/vladimirBolkh/ai-for-developers-project-386/compare/v1.0.0...v1.1.0) (2026-10-20)
 
 
