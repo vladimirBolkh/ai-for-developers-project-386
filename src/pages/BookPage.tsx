@@ -23,10 +23,11 @@ import dayjs from 'dayjs'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
-// Каноничная метка дня — префикс ISO-строки слота (та же часть строки, что
-// показывает formatSlot), поэтому календарь и список слотов согласованы.
+// Каноничная метка дня — локальная дата ISO-момента (строго та же часть даты,
+// что показывает formatSlot), поэтому календарь и список слотов всегда
+// согласованы в часовом поясе пользователя.
 function dayKey(iso: string) {
-  return iso.slice(0, 10)
+  return dayjs(iso).format('YYYY-MM-DD')
 }
 
 export default function BookPage() {

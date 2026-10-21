@@ -12,7 +12,9 @@ const meeting: Meeting = {
   eventTypeDescription: 'Разбор вопроса',
   eventTypeDurationMinutes: 30,
   eventTypeFormat: 'online',
-  startDateTime: '2026-10-21T09:00:00+03:00',
+  // Момент 09:00 локального времени — вывод formatSlot тоже локальный, поэтому
+  // тест одинаково проходит в любом поясе (включая UTC в CI).
+  startDateTime: new Date(2026, 9, 21, 9, 0).toISOString(),
   guestName: 'Анна',
 }
 

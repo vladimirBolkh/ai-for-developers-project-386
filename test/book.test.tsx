@@ -22,6 +22,11 @@ const call: EventType = {
   format: 'offline',
 }
 
+// «09:00 локально 21.10.2026» — момент, созданный в поясе самой машины. Так
+// фикстура и вывод formatSlot (тоже локальный) совпадают везде, включая UTC в CI.
+const at = (year: number, month: number, day: number, hour: number, minute: number) =>
+  new Date(year, month, day, hour, minute).toISOString()
+
 const meeting: Meeting = {
   id: 'm1',
   eventTypeId: '1',
@@ -29,7 +34,7 @@ const meeting: Meeting = {
   eventTypeDescription: 'Разбор вопроса',
   eventTypeDurationMinutes: 30,
   eventTypeFormat: 'online',
-  startDateTime: '2026-10-21T09:00:00+03:00',
+  startDateTime: at(2026, 9, 21, 9, 0),
   guestName: 'Анна',
 }
 
@@ -111,7 +116,7 @@ describe('Календарь и слоты', () => {
   it('запрашивает доступность и показывает свободные слоты выбранного дня', async () => {
     sdkMocks.eventTypesList.mockResolvedValue({ data: [consultation], error: undefined })
     sdkMocks.availabilityGet.mockResolvedValue({
-      data: [free('2026-10-21T09:00:00+03:00'), free('2026-10-21T09:15:00+03:00')],
+      data: [free(at(2026, 9, 21, 9, 0)), free(at(2026, 9, 21, 9, 15))],
       error: undefined,
     })
 
@@ -127,7 +132,7 @@ describe('Календарь и слоты', () => {
   it('фильтрует слоты по выбранной дате — календарь сокращает список', async () => {
     sdkMocks.eventTypesList.mockResolvedValue({ data: [consultation], error: undefined })
     sdkMocks.availabilityGet.mockResolvedValue({
-      data: [free('2026-10-21T09:00:00+03:00'), free('2026-10-22T10:00:00+03:00')],
+      data: [free(at(2026, 9, 21, 9, 0)), free(at(2026, 9, 22, 10, 0))],
       error: undefined,
     })
 
@@ -145,9 +150,9 @@ describe('Календарь и слоты', () => {
     sdkMocks.eventTypesList.mockResolvedValue({ data: [consultation], error: undefined })
     sdkMocks.availabilityGet.mockResolvedValue({
       data: [
-        free('2026-10-21T09:00:00+03:00'),
-        { startDateTime: '2026-10-21T09:15:00+03:00', status: 'busy' },
-        { startDateTime: '2026-10-21T09:30:00+03:00', status: 'unavailable' },
+        free(at(2026, 9, 21, 9, 0)),
+        { startDateTime: at(2026, 9, 21, 9, 15), status: 'busy' },
+        { startDateTime: at(2026, 9, 21, 9, 30), status: 'unavailable' },
       ],
       error: undefined,
     })
@@ -165,8 +170,8 @@ describe('Календарь и слоты', () => {
   it('пересчитывает слоты при смене типа', async () => {
     sdkMocks.eventTypesList.mockResolvedValue({ data: [consultation, call], error: undefined })
     sdkMocks.availabilityGet
-      .mockResolvedValueOnce({ data: [free('2026-10-21T09:00:00+03:00')], error: undefined })
-      .mockResolvedValueOnce({ data: [free('2026-10-22T10:00:00+03:00')], error: undefined })
+      .mockResolvedValueOnce({ data: [free(at(2026, 9, 21, 9, 0))], error: undefined })
+      .mockResolvedValueOnce({ data: [free(at(2026, 9, 22, 10, 0))], error: undefined })
 
     renderBookPage()
     await screen.findByText(/2026-10-21 · 09:00/)
@@ -181,7 +186,7 @@ describe('Календарь и слоты', () => {
   it('фиксирует выбранный слот и открывает форму', async () => {
     sdkMocks.eventTypesList.mockResolvedValue({ data: [consultation], error: undefined })
     sdkMocks.availabilityGet.mockResolvedValue({
-      data: [free('2026-10-21T09:00:00+03:00')],
+      data: [free(at(2026, 9, 21, 9, 0))],
       error: undefined,
     })
 
@@ -206,7 +211,7 @@ describe('Подтверждение записи', () => {
   async function pickSlotAndOpenForm() {
     sdkMocks.eventTypesList.mockResolvedValue({ data: [consultation], error: undefined })
     sdkMocks.availabilityGet.mockResolvedValue({
-      data: [free('2026-10-21T09:00:00+03:00')],
+      data: [free(at(2026, 9, 21, 9, 0))],
       error: undefined,
     })
     renderBookPage()
@@ -237,7 +242,7 @@ describe('Подтверждение записи', () => {
     expect(sdkMocks.bookingsCreate).toHaveBeenCalledWith({
       body: {
         eventTypeId: '1',
-        startDateTime: '2026-10-21T09:00:00+03:00',
+        startDateTime: at(2026, 9, 21, 9, 0),
         guestName: 'Анна',
       },
     })
