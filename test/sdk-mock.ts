@@ -5,6 +5,7 @@ import type {
   EventTypeCreate,
   EventTypeUpdate,
   Meeting,
+  Slot,
   WorkingHours,
 } from '@/api'
 
@@ -19,7 +20,7 @@ type SdkFn<T, O = unknown> = (options?: O) => Promise<ApiResult<T>>
 
 export const sdkMocks = {
   availabilityGet: vi
-    .fn<SdkFn<string[], { query: { eventTypeId: string } }>>()
+    .fn<SdkFn<Slot[], { query: { eventTypeId: string } }>>()
     .mockResolvedValue({ data: [], error: undefined }),
   bookingsCreate: vi
     .fn<SdkFn<Meeting, { body: BookingRequest }>>()

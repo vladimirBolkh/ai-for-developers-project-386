@@ -190,6 +190,31 @@ export const schemas = [
       }
     },
   {
+      "$id": "Slot",
+      "type": "object",
+      "required": [
+        "startDateTime",
+        "status"
+      ],
+      "properties": {
+        "startDateTime": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "SlotStatus"
+        }
+      }
+    },
+  {
+      "$id": "SlotStatus",
+      "type": "string",
+      "enum": [
+        "free",
+        "busy",
+        "unavailable"
+      ]
+    },
+  {
       "$id": "ValidationError",
       "type": "object",
       "required": [

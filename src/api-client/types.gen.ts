@@ -60,6 +60,13 @@ export type NotFoundError = {
     message: string;
 };
 
+export type Slot = {
+    startDateTime: string;
+    status: SlotStatus;
+};
+
+export type SlotStatus = 'free' | 'busy' | 'unavailable';
+
 export type ValidationError = {
     message: string;
 };
@@ -96,7 +103,7 @@ export type AvailabilityGetResponses = {
     /**
      * The request has succeeded.
      */
-    200: Array<string>;
+    200: Array<Slot>;
 };
 
 export type AvailabilityGetResponse = AvailabilityGetResponses[keyof AvailabilityGetResponses];

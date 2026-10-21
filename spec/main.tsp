@@ -72,6 +72,21 @@ model Meeting {
   guestEmail?: string;
 }
 
+// --- Слоты доступности ---
+
+// Статус слота в сетке дня: свободен для записи, занят (уже записались),
+// недоступен по времени (момент уже наступил).
+enum SlotStatus {
+  free: "free",
+  busy: "busy",
+  unavailable: "unavailable",
+}
+
+model Slot {
+  startDateTime: string;
+  status: SlotStatus;
+}
+
 // --- Ошибки ---
 
 @error
@@ -119,7 +134,7 @@ interface WorkingHoursOperations {
 
 @route("/availability")
 interface Availability {
-  @get get(@query eventTypeId: string): string[] | NotFoundError;
+  @get get(@query eventTypeId: string): Slot[] | NotFoundError;
 }
 
 @route("/bookings")

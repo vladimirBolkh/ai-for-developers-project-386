@@ -1,6 +1,6 @@
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import type { EventType, Meeting } from '@/api'
+import type { EventType, Meeting, Slot } from '@/api'
 import { MemoryRouter } from 'react-router-dom'
 import BookPage from '@/pages/BookPage'
 import { resetSdkMocks, sdkMocks } from './sdk-mock'
@@ -33,6 +33,10 @@ const meeting: Meeting = {
   guestName: 'Анна',
 }
 
+function free(iso: string): Slot {
+  return { startDateTime: iso, status: 'free' }
+}
+
 function renderBookPage() {
   render(
     <MemoryRouter>
@@ -46,7 +50,7 @@ beforeEach(() => {
 })
 
 describe('Страница записи', () => {
-  it('показывает список типов событий из API', async () => {
+  it('показывает доступные типы в выпадающем списке и детали выбранного', async () => {
     sdkMocks.eventTypesList.mockResolvedValue({ data: [consultation, call], error: undefined })
 
     renderBookPage()
@@ -54,21 +58,27 @@ describe('Страница записи', () => {
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Запись на встречу' }),
     ).toBeInTheDocument()
+
+    // Оба типа доступны в выпадающем списке.
+    const select = await screen.findByLabelText('Тип встречи')
+    expect(within(select).getByRole('option', { name: /Консультация/ })).toBeInTheDocument()
+    expect(within(select).getByRole('option', { name: /Созвон/ })).toBeInTheDocument()
+
+    // Первый тип выбран авто-матически, его детали видны в блоке информации.
     expect(screen.getByText('Консультация')).toBeInTheDocument()
-    expect(screen.getByText('Созвон')).toBeInTheDocument()
     expect(screen.getByText('онлайн')).toBeInTheDocument()
-    expect(screen.getByText('оффлайн')).toBeInTheDocument()
-    expect(screen.getByText('30 мин')).toBeInTheDocument()
+    expect(screen.getByText('Разбор вопроса')).toBeInTheDocument()
   })
 
-  it('фиксирует выбор типа события', async () => {
-    sdkMocks.eventTypesList.mockResolvedValue({ data: [consultation], error: undefined })
+  it('переключает тип через выпадающий список', async () => {
+    sdkMocks.eventTypesList.mockResolvedValue({ data: [consultation, call], error: undefined })
 
     renderBookPage()
+    const select = await screen.findByLabelText('Тип встречи')
+    await userEvent.selectOptions(select, call.id)
 
-    await userEvent.click(await screen.findByRole('button', { name: /Консультация/ }))
-
-    expect(await screen.findByText('Выбран: Консультация')).toBeInTheDocument()
+    expect(await screen.findByText('Созвон')).toBeInTheDocument()
+    expect(screen.getByText('оффлайн')).toBeInTheDocument()
   })
 
   it('показывает пустое состояние, когда типов нет', async () => {
@@ -97,16 +107,15 @@ describe('Страница записи', () => {
   })
 })
 
-describe('Выбор слота', () => {
-  it('запрашивает доступность и показывает свободные слоты', async () => {
+describe('Календарь и слоты', () => {
+  it('запрашивает доступность и показывает свободные слоты выбранного дня', async () => {
     sdkMocks.eventTypesList.mockResolvedValue({ data: [consultation], error: undefined })
     sdkMocks.availabilityGet.mockResolvedValue({
-      data: ['2026-10-21T09:00:00+03:00', '2026-10-21T09:15:00+03:00'],
+      data: [free('2026-10-21T09:00:00+03:00'), free('2026-10-21T09:15:00+03:00')],
       error: undefined,
     })
 
     renderBookPage()
-    await userEvent.click(await screen.findByRole('button', { name: /Консультация/ }))
 
     expect(await screen.findByText(/2026-10-21 · 09:00/)).toBeInTheDocument()
     expect(screen.getByText(/2026-10-21 · 09:15/)).toBeInTheDocument()
@@ -115,52 +124,71 @@ describe('Выбор слота', () => {
     })
   })
 
-  it('фильтрует слоты по выбранной дате — календарь сокращает длинный список', async () => {
+  it('фильтрует слоты по выбранной дате — календарь сокращает список', async () => {
     sdkMocks.eventTypesList.mockResolvedValue({ data: [consultation], error: undefined })
     sdkMocks.availabilityGet.mockResolvedValue({
-      data: ['2026-10-21T09:00:00+03:00', '2026-10-22T10:00:00+03:00'],
+      data: [free('2026-10-21T09:00:00+03:00'), free('2026-10-22T10:00:00+03:00')],
       error: undefined,
     })
 
     renderBookPage()
-    await userEvent.click(await screen.findByRole('button', { name: /Консультация/ }))
 
-    // Авто-выбрана первая доступная дата (21.10): её слот виден, слот 22.10 скрыт.
+    // Авто-выбрана первая свободная дата (21.10): её слот виден, слот 22.10 скрыт.
     expect(await screen.findByText(/2026-10-21 · 09:00/)).toBeInTheDocument()
     expect(screen.queryByText(/2026-10-22 · 10:00/)).not.toBeInTheDocument()
-    // Сам календарь отрисован.
-    expect(screen.getByLabelText('Дата')).toBeInTheDocument()
+    // Блок календаря отрисован.
+    expect(screen.getByRole('heading', { name: 'Календарь' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Доступные слоты' })).toBeInTheDocument()
+  })
+
+  it('помечает занятые и недоступные слоты, блокируя их', async () => {
+    sdkMocks.eventTypesList.mockResolvedValue({ data: [consultation], error: undefined })
+    sdkMocks.availabilityGet.mockResolvedValue({
+      data: [
+        free('2026-10-21T09:00:00+03:00'),
+        { startDateTime: '2026-10-21T09:15:00+03:00', status: 'busy' },
+        { startDateTime: '2026-10-21T09:30:00+03:00', status: 'unavailable' },
+      ],
+      error: undefined,
+    })
+
+    renderBookPage()
+
+    expect(await screen.findByText(/2026-10-21 · 09:00/)).toBeInTheDocument()
+    expect(screen.getByText('занято')).toBeInTheDocument()
+    expect(screen.getByText('недоступен')).toBeInTheDocument()
+    // Занятый и недоступный слоты нельзя выбрать.
+    expect(screen.getByText('занято').closest('button')).toBeDisabled()
+    expect(screen.getByText('недоступен').closest('button')).toBeDisabled()
   })
 
   it('пересчитывает слоты при смене типа', async () => {
     sdkMocks.eventTypesList.mockResolvedValue({ data: [consultation, call], error: undefined })
     sdkMocks.availabilityGet
-      .mockResolvedValueOnce({ data: ['2026-10-21T09:00:00+03:00'], error: undefined })
-      .mockResolvedValueOnce({ data: ['2026-10-22T10:00:00+03:00'], error: undefined })
+      .mockResolvedValueOnce({ data: [free('2026-10-21T09:00:00+03:00')], error: undefined })
+      .mockResolvedValueOnce({ data: [free('2026-10-22T10:00:00+03:00')], error: undefined })
 
     renderBookPage()
-    await userEvent.click(await screen.findByRole('button', { name: /Консультация/ }))
     await screen.findByText(/2026-10-21 · 09:00/)
 
-    await userEvent.click(screen.getByRole('button', { name: /Созвон/ }))
+    await userEvent.selectOptions(screen.getByLabelText('Тип встречи'), call.id)
 
     expect(await screen.findByText(/2026-10-22 · 10:00/)).toBeInTheDocument()
     expect(screen.queryByText(/2026-10-21 · 09:00/)).not.toBeInTheDocument()
     expect(sdkMocks.availabilityGet).toHaveBeenLastCalledWith({ query: { eventTypeId: call.id } })
   })
 
-  it('фиксирует выбранный слот', async () => {
+  it('фиксирует выбранный слот и открывает форму', async () => {
     sdkMocks.eventTypesList.mockResolvedValue({ data: [consultation], error: undefined })
     sdkMocks.availabilityGet.mockResolvedValue({
-      data: ['2026-10-21T09:00:00+03:00'],
+      data: [free('2026-10-21T09:00:00+03:00')],
       error: undefined,
     })
 
     renderBookPage()
-    await userEvent.click(await screen.findByRole('button', { name: /Консультация/ }))
     await userEvent.click(await screen.findByRole('button', { name: /2026-10-21 · 09:00/ }))
 
-    // После выбора слота появляется форма ввода данных гостя.
+    // После выбора слота календарь и слоты заменяются формой данных гостя.
     expect(await screen.findByText('Ваши данные')).toBeInTheDocument()
   })
 
@@ -169,7 +197,6 @@ describe('Выбор слота', () => {
     sdkMocks.availabilityGet.mockResolvedValue({ data: [], error: undefined })
 
     renderBookPage()
-    await userEvent.click(await screen.findByRole('button', { name: /Консультация/ }))
 
     expect(await screen.findByText(/нет свободных слотов/i)).toBeInTheDocument()
   })
@@ -179,11 +206,10 @@ describe('Подтверждение записи', () => {
   async function pickSlotAndOpenForm() {
     sdkMocks.eventTypesList.mockResolvedValue({ data: [consultation], error: undefined })
     sdkMocks.availabilityGet.mockResolvedValue({
-      data: ['2026-10-21T09:00:00+03:00'],
+      data: [free('2026-10-21T09:00:00+03:00')],
       error: undefined,
     })
     renderBookPage()
-    await userEvent.click(await screen.findByRole('button', { name: /Консультация/ }))
     await userEvent.click(await screen.findByRole('button', { name: /2026-10-21 · 09:00/ }))
     await screen.findByText('Ваши данные')
   }
@@ -197,19 +223,17 @@ describe('Подтверждение записи', () => {
     expect(sdkMocks.bookingsCreate).not.toHaveBeenCalled()
   })
 
-  it('создаёт запись и показывает подтверждение Встречи', async () => {
+  it('создаёт запись и показывает подтверждение', async () => {
     sdkMocks.bookingsCreate.mockResolvedValue({ data: meeting, error: undefined })
 
     await pickSlotAndOpenForm()
     await userEvent.type(screen.getByLabelText(/Имя/), 'Анна')
     await userEvent.click(screen.getByRole('button', { name: /Подтвердить запись/ }))
 
-    const confirmation = await screen.findByRole('heading', { name: 'Вы записаны' })
-    const card = confirmation.parentElement
-    if (!card) throw new Error('card not found')
-    expect(within(card).getByText('Консультация')).toBeInTheDocument()
-    expect(within(card).getByText('2026-10-21 · 09:00')).toBeInTheDocument()
-    expect(within(card).getByText('Гость: Анна')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Вы записаны' })).toBeInTheDocument()
+    expect(screen.getByText('Гость: Анна')).toBeInTheDocument()
+    // Вместо календаря и слотов — кнопка «Забронировать ещё».
+    expect(screen.getByRole('button', { name: /Забронировать ещё/ })).toBeInTheDocument()
     expect(sdkMocks.bookingsCreate).toHaveBeenCalledWith({
       body: {
         eventTypeId: '1',
@@ -217,6 +241,20 @@ describe('Подтверждение записи', () => {
         guestName: 'Анна',
       },
     })
+  })
+
+  it('возвращается к записи по кнопке «Забронировать ещё»', async () => {
+    sdkMocks.bookingsCreate.mockResolvedValue({ data: meeting, error: undefined })
+
+    await pickSlotAndOpenForm()
+    await userEvent.type(screen.getByLabelText(/Имя/), 'Анна')
+    await userEvent.click(screen.getByRole('button', { name: /Подтвердить запись/ }))
+    await screen.findByRole('heading', { name: 'Вы записаны' })
+
+    await userEvent.click(screen.getByRole('button', { name: /Забронировать ещё/ }))
+
+    expect(await screen.findByRole('heading', { name: 'Календарь' })).toBeInTheDocument()
+    expect(screen.queryByText('Вы записаны')).not.toBeInTheDocument()
   })
 
   it('при занятом слоте (409) возвращает к выбору слота', async () => {
@@ -234,7 +272,7 @@ describe('Подтверждение записи', () => {
     expect(screen.queryByText('Ваши данные')).not.toBeInTheDocument()
   })
 
-  it('при ошибке валидации (400) показывает сообщение об ошибке', async () => {
+  it('при ошибке валидации (400) показывает сообщение и остаётся в форме', async () => {
     sdkMocks.bookingsCreate.mockResolvedValue({
       data: undefined,
       error: { message: 'bad request' },

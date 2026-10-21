@@ -22,7 +22,7 @@ paths:
               schema:
                 type: array
                 items:
-                  type: string
+                  $ref: '#/components/schemas/Slot'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -342,6 +342,22 @@ components:
       properties:
         message:
           type: string
+    Slot:
+      type: object
+      required:
+        - startDateTime
+        - status
+      properties:
+        startDateTime:
+          type: string
+        status:
+          $ref: '#/components/schemas/SlotStatus'
+    SlotStatus:
+      type: string
+      enum:
+        - free
+        - busy
+        - unavailable
     ValidationError:
       type: object
       required:

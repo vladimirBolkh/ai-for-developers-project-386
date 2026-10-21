@@ -40,29 +40,43 @@ function seed(): { store: Store; eventTypeId: string } {
 
 describe('Доменная логика бэкенда (in-memory store)', () => {
   describe('availability', () => {
-    it('генерирует слоты сеткой 15 минут внутри рабочих часов', () => {
+    it('генерирует сетку 15 минут внутри рабочих часов со свободными слотами', () => {
       const { store, eventTypeId } = seed()
       const slots = computeAvailability(store, eventTypeId, NOW)
 
-      expect(slots[0]).toBe(iso(9, 0))
+      expect(slots[0].startDateTime).toBe(iso(9, 0))
+      expect(slots[0].status).toBe('free') // NOW — полночь, всё в будущем, записей нет
       for (const slot of slots) {
-        const date = new Date(slot)
+        const date = new Date(slot.startDateTime)
         expect(date.getMinutes() % 15).toBe(0)
         expect(date.getHours()).toBeGreaterThanOrEqual(9)
         expect(date.getHours()).toBeLessThan(17)
       }
     })
 
-    it('исключает слоты, пересекающиеся с существующей записью, но допускает «впритык»', () => {
+    it('помечает занятый и пересекающийся слоты как busy, «впритык» — как free', () => {
       const { store, eventTypeId } = seed()
       createBooking(store, { eventTypeId, startDateTime: iso(10, 0), guestName: 'Гость' }, NOW)
 
       const slots = computeAvailability(store, eventTypeId, NOW)
+      const statusByTime = new Map(slots.map((s) => [s.startDateTime, s.status]))
 
-      expect(slots).not.toContain(iso(10, 0)) // занят
-      expect(slots).not.toContain(iso(9, 45)) // пересекается (09:45–10:15)
-      expect(slots).toContain(iso(9, 30)) // впритык слева (09:00–09:30 → 09:30)
-      expect(slots).toContain(iso(10, 30)) // впритык справа
+      expect(statusByTime.get(iso(10, 0))).toBe('busy') // занят
+      expect(statusByTime.get(iso(9, 45))).toBe('busy') // пересекается (09:45–10:15)
+      expect(statusByTime.get(iso(9, 30))).toBe('free') // впритык слева (09:00–09:30 → 09:30)
+      expect(statusByTime.get(iso(10, 30))).toBe('free') // впритык справа
+    })
+
+    it('помечает прошедшие слоты как unavailable, а наступившие — как free', () => {
+      const { store, eventTypeId } = seed()
+      // «Сейчас» — 12:00 понедельника: утро уже прошло.
+      const noon = new Date(2026, 0, 5, 12, 0, 0)
+      const slots = computeAvailability(store, eventTypeId, noon)
+      const statusByTime = new Map(slots.map((s) => [s.startDateTime, s.status]))
+
+      expect(statusByTime.get(iso(9, 0))).toBe('unavailable') // прошло
+      expect(statusByTime.get(iso(11, 45))).toBe('unavailable') // 11:45 < 12:00
+      expect(statusByTime.get(iso(12, 0))).toBe('free') // ровно «сейчас» — ещё можно
     })
 
     it('возвращает пусто для неизвестного типа', () => {

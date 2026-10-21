@@ -25,5 +25,7 @@ export type {
   EventTypeUpdate,
   Meeting,
   MeetingFormat,
+  Slot,
+  SlotStatus,
   WorkingHours,
 } from '@/api-client/types.gen'

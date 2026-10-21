@@ -7,6 +7,8 @@ import type {
   EventTypeCreate,
   EventTypeUpdate,
   Meeting,
+  Slot,
+  SlotStatus,
   WorkingHours,
 } from './generated/types'
 
@@ -76,14 +78,18 @@ function meetingsOverlap(store: Store, startMs: number, endMs: number): boolean 
   })
 }
 
-// Слоты = сетка 15 минут внутри рабочих часов на окно «сегодня + WINDOW_DAYS»,
-// минус пересечения с уже существующими записями. «Впритык» (back-to-back) разрешено.
-export function computeAvailability(store: Store, eventTypeId: string, now = new Date()): string[] {
+// Слоты = сетка 15 минут внутри рабочих часов на окно «сегодня + WINDOW_DAYS».
+// Каждый слот возвращается со статусом, а не отфильтровывается:
+//   - `free` — будущий и не занят: можно записаться;
+//   - `busy` — будущий, но пересекается с уже существующей записью;
+//   - `unavailable` — момент уже наступил (время прошло).
+// «Впритык» (back-to-back) разрешено.
+export function computeAvailability(store: Store, eventTypeId: string, now = new Date()): Slot[] {
   const eventType = store.eventTypes.find((type) => type.id === eventTypeId)
   if (!eventType) return []
 
   const duration = eventType.durationMinutes
-  const slots: string[] = []
+  const slots: Slot[] = []
   const nowMs = now.getTime()
   const baseDay = new Date(now)
   baseDay.setHours(0, 0, 0, 0)
@@ -100,9 +106,12 @@ export function computeAvailability(store: Store, eventTypeId: string, now = new
       const start = new Date(day)
       start.setHours(Math.floor(startMin / 60), startMin % 60, 0, 0)
       const startMs = start.getTime()
-      if (startMs < nowMs) continue
       const endMs = startMs + duration * 60000
-      if (!meetingsOverlap(store, startMs, endMs)) slots.push(start.toISOString())
+      let status: SlotStatus
+      if (startMs < nowMs) status = 'unavailable'
+      else if (meetingsOverlap(store, startMs, endMs)) status = 'busy'
+      else status = 'free'
+      slots.push({ startDateTime: start.toISOString(), status })
     }
   }
   return slots
