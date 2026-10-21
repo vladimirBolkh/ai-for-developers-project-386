@@ -14,6 +14,7 @@ SPA «calls_calendar»: **Vite 8 + React 19 + TypeScript 6 + Mantine 9** (+ `@ma
 - `npm test` — vitest (один файл: `npx vitest run test/main.test.tsx`), `npm run test:watch`
 - `npm run lint` / `npm run format:check` / `npm run format`
 - `npm run build` — `tsc -b && vite build`, т.е. typecheck + сборка одной командой
+- `docker build -t calls-calendar .` / `docker run -p 8080:8080 calls-calendar` — локальный запуск в контейнере (см. «Деплой»)
 
 Порядок проверки такой же, как в CI (`.github/workflows/ci.yml`, Node 24): **lint → format:check → test → build**. Прогнать все четыре, прежде чем считать задачу готовой.
 
@@ -46,6 +47,13 @@ SPA «calls_calendar»: **Vite 8 + React 19 + TypeScript 6 + Mantine 9** (+ `@ma
 - При **squash-merge** итоговый коммит = заголовок PR, значит заголовок PR тоже обязан быть conventional.
 - `.github/workflows/release-please.yml` (режим одного пакета, `release-type: node`) на пуше в `master` открывает release-PR с бампом версии в `package.json` и `CHANGELOG.md`; слияние этого PR создаёт тег и GitHub Release. Первый release-PR откроется, когда conventional-коммиты попадут в `master` — тегов пока нет.
 - `.github/workflows/hexlet-check.yml` сгенерирован платформой Hexlet: **не редактировать и не удалять** (запрет прямо в файле). Оба файла Hexlet (`hexlet-check.yml`, `README.md`) лежат в `.prettierignore`, чтобы `npm run format` их не трогал.
+
+## Деплой (Docker + Render)
+
+- Контейнер: multi-stage `Dockerfile` (node:24-alpine): сборка SPA + esbuild-бандл `server/main.ts` → рантайм с prod-зависимостями. Один процесс на `PORT` (по умолчанию 8080) отдаёт и `dist/` (SPA-fallback на `index.html` для react-router), и `/api` — см. `server/index.ts`. Статика раздаётся, только если `dist/` существует, поэтому dev-режим (`npm run server` + Vite) не задет.
+- Хостинг: **Render**, web service `calls-calendar` (регион Frankfurt, free), собирает Dockerfile из `master` при пуше (auto-deploy). Прод-URL: https://calls-calendar.onrender.com
+- Deploy/логи/метрики — через Render MCP (`opencode mcp add render --url https://mcp.render.com/mcp --header "Authorization=Bearer <RENDER_API_KEY>"`); ключ хранить в `opencode.json` (в `.gitignore`), не в репозитории.
+- **Данные in-memory** (`server/store.ts`): при редеплое/рестарте сервиса всё стирается. Для демо это ок; постоянное хранение — отдельная задача (Postgres/Key Value на Render).
 
 ## Полезно знать
 
