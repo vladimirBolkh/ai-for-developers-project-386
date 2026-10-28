@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/vladimirBolkh/ai-for-developers-project-386/compare/v1.2.0...v1.3.0) (2026-10-21)
+
+
+### Features
+
+* **docker:** serve SPA from Fastify and add container setup ([49ffc9f](https://github.com/vladimirBolkh/ai-for-developers-project-386/commit/49ffc9f941355849d66dbe3d93d91b93ad4913b2))
+
 ## [1.2.0](https://github.com/vladimirBolkh/ai-for-developers-project-386/compare/v1.1.0...v1.2.0) (2026-10-21)
 
 
